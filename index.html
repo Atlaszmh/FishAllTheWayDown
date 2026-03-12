@@ -1436,6 +1436,7 @@ function createFreshState() {
       rocketFuel: 0,
       cosmicEnergy: 0,
     },
+    fishAccum: 0,
     rates: {
       fishPerClick: 1,
       fishPerSec: 0,
@@ -1608,7 +1609,7 @@ function buyUpgrade(upgId) {
 function castLine() {
   const era = getEra();
   const fishType = era.fishTypes[Math.floor(Math.random() * era.fishTypes.length)];
-  const amount = gameState.rates.fishPerClick * fishType.value;
+  const amount = Math.floor(gameState.rates.fishPerClick * fishType.value);
   gameState.resources.fish += amount;
   gameState.totalFishEver += amount;
   // Track caught species
@@ -1731,11 +1732,15 @@ function gameTick() {
   const era = getEra();
   const schoolMult = s.schoolActive ? 10 : 1;
 
-  // Passive fish
+  // Passive fish (accumulate fractional, only add whole fish)
   if (s.rates.fishPerSec > 0) {
-    const fish = s.rates.fishPerSec * dt * schoolMult;
-    s.resources.fish += fish;
-    s.totalFishEver += fish;
+    s.fishAccum += s.rates.fishPerSec * dt * schoolMult;
+    const whole = Math.floor(s.fishAccum);
+    if (whole > 0) {
+      s.fishAccum -= whole;
+      s.resources.fish += whole;
+      s.totalFishEver += whole;
+    }
   }
 
   // Traps
@@ -2069,6 +2074,8 @@ function loadGame() {
     const data = JSON.parse(raw);
     if (!data.saveVersion) return false;
     gameState = data;
+    // Migration: ensure fishAccum exists (old saves)
+    if (gameState.fishAccum === undefined) gameState.fishAccum = 0;
     // Migration: ensure unlockedTabs exists (old saves)
     if (!gameState.unlockedTabs) {
       gameState.unlockedTabs = {};
@@ -2094,7 +2101,7 @@ function loadGame() {
     // Calculate offline progress (cap at 5 minutes)
     const offlineTime = Math.min(300, (Date.now() - data.lastSave) / 1000);
     if (offlineTime > 5 && gameState.rates.fishPerSec > 0) {
-      const offlineFish = gameState.rates.fishPerSec * offlineTime;
+      const offlineFish = Math.floor(gameState.rates.fishPerSec * offlineTime);
       gameState.resources.fish += offlineFish;
       gameState.totalFishEver += offlineFish;
       addStory('Welcome back! You caught ' + fmt(offlineFish) + ' fish while away.', 'narrative');
