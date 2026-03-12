@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fish All The Way Down</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#game {
+  max-width: 900px;
+  width: 100%;
+  padding: 10px 20px;
+}
+h1 {
+  text-align: center;
+  color: #4fc3f7;
+  font-size: 22px;
+  padding: 15px 0 5px;
+  letter-spacing: 2px;
+}
+#era-name {
+  text-align: center;
+  color: #ffab40;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* News Ticker */
+#news-ticker {
+  background: #16213e;
+  border: 1px solid #333;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  min-height: 40px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 13px;
+  color: #aaa;
+}
+#news-ticker .story {
+  margin-bottom: 4px;
+  animation: fadeIn 0.5s ease-in;
+}
+#news-ticker .story.headline {
+  color: #ff8a65;
+  font-weight: bold;
+}
+#news-ticker .story.narrative {
+  color: #81c784;
+  font-style: italic;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Resources Bar */
+#resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  background: #16213e;
+  border: 1px solid #333;
+  padding: 10px 15px;
+  margin-bottom: 12px;
+}
+.resource {
+  font-size: 13px;
+}
+.resource .label { color: #888; }
+.resource .value { color: #4fc3f7; font-weight: bold; }
+.resource .rate { color: #666; font-size: 11px; }
+
+/* Main Layout */
+#main {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+#actions-col {
+  flex: 1;
+  min-width: 280px;
+}
+#upgrades-col {
+  flex: 1.2;
+  min-width: 320px;
+}
+
+/* Action Buttons */
+.action-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #0f3460;
+  border: 1px solid #4fc3f7;
+  color: #4fc3f7;
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.action-btn:hover:not(:disabled) {
+  background: #1a5276;
+  transform: scale(1.02);
+}
+.action-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #555;
+  color: #555;
+}
+.action-btn .click-feedback {
+  color: #ffab40;
+  font-size: 12px;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.action-btn .click-feedback.show {
+  opacity: 1;
+}
+
+/* Era Transition */
+#era-transition {
+  display: none;
+  margin-bottom: 8px;
+}
+#era-transition .action-btn {
+  background: #1b5e20;
+  border-color: #66bb6a;
+  color: #66bb6a;
+  font-size: 14px;
+}
+#era-transition .action-btn:hover:not(:disabled) {
+  background: #2e7d32;
+}
+#era-transition .transition-story {
+  color: #81c784;
+  font-style: italic;
+  font-size: 12px;
+  margin-bottom: 6px;
+  padding: 6px;
+  background: rgba(27,94,32,0.2);
+  border-left: 3px solid #66bb6a;
+}
+
+/* Space Whale Event */
+#whale-event {
+  display: none;
+  margin-bottom: 8px;
+}
+#whale-event .action-btn {
+  background: #4a148c;
+  border-color: #ce93d8;
+  color: #ce93d8;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(206,147,216,0.3); }
+  50% { box-shadow: 0 0 15px rgba(206,147,216,0.6); }
+}
+
+/* Upgrade Tabs */
+#upgrade-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+.tab-btn {
+  padding: 5px 10px;
+  background: #16213e;
+  border: 1px solid #333;
+  color: #888;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.tab-btn.active {
+  background: #0f3460;
+  color: #4fc3f7;
+  border-color: #4fc3f7;
+}
+.tab-btn:hover { color: #bbb; }
+
+/* Upgrade List */
+#upgrade-list {
+  background: #16213e;
+  border: 1px solid #333;
+  padding: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.upgrade-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  background: #1a1a2e;
+  border: 1px solid #333;
+  color: #e0e0e0;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.upgrade-btn:hover:not(:disabled) {
+  border-color: #4fc3f7;
+  background: #0f3460;
+}
+.upgrade-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.upgrade-btn .upgrade-name { color: #4fc3f7; font-weight: bold; }
+.upgrade-btn .upgrade-cost { color: #ffab40; float: right; }
+.upgrade-btn .upgrade-desc { color: #888; font-size: 11px; display: block; margin-top: 2px; }
+.upgrade-btn .upgrade-effect { color: #81c784; font-size: 11px; }
+.upgrade-btn .upgrade-owned { color: #666; font-size: 11px; float: right; }
+
+/* Fish Threat Meter (Era 12) */
+#threat-meter {
+  display: none;
+  margin-bottom: 12px;
+}
+#threat-meter .meter-bar {
+  height: 20px;
+  background: #333;
+  border: 1px solid #f44336;
+  position: relative;
+}
+#threat-meter .meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f44336, #ff1744);
+  width: 0%;
+  transition: width 0.1s;
+}
+#threat-meter .meter-label {
+  text-align: center;
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Fish Species Panel */
+#fish-species {
+  background: #16213e;
+  border: 1px solid #333;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+#fish-species .species-header {
+  color: #4fc3f7;
+  font-weight: bold;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+#fish-species .species {
+  display: inline-block;
+  margin: 2px 6px 2px 0;
+  padding: 2px 8px;
+  background: #1a1a2e;
+  border: 1px solid #333;
+  border-radius: 3px;
+  color: #aaa;
+  transition: all 0.3s;
+}
+#fish-species .species.caught {
+  border-color: #4fc3f7;
+  color: #e0e0e0;
+}
+#fish-species .species .fish-value {
+  color: #ffab40;
+  font-size: 10px;
+  margin-left: 4px;
+}
+#last-catch {
+  text-align: center;
+  color: #81c784;
+  font-size: 12px;
+  min-height: 18px;
+  margin-bottom: 4px;
+  transition: opacity 0.3s;
+}
+
+/* Save Controls */
+#save-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: center;
+}
+#save-controls button {
+  padding: 4px 12px;
+  background: #16213e;
+  border: 1px solid #555;
+  color: #888;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+#save-controls button:hover { color: #bbb; border-color: #888; }
+
+/* End Screen */
+#end-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 1000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+#end-screen.show { display: flex; }
+#end-screen h2 { color: #4fc3f7; font-size: 28px; margin-bottom: 20px; }
+#end-screen .poem { color: #81c784; font-style: italic; font-size: 16px; line-height: 2; margin-bottom: 30px; }
+#end-screen .stats { color: #aaa; font-size: 14px; margin-bottom: 20px; }
+#end-screen .title { color: #ffab40; font-size: 20px; margin-bottom: 20px; }
+#end-screen button {
+  padding: 12px 30px;
+  background: #0f3460;
+  border: 1px solid #4fc3f7;
+  color: #4fc3f7;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Galactic school burst indicator */
+#school-burst {
+  display: none;
+  background: rgba(206,147,216,0.15);
+  border: 1px solid #ce93d8;
+  color: #ce93d8;
+  text-align: center;
+  padding: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  animation: pulse 0.5s infinite;
+}
+#school-burst.show { display: block; }
+
+@media (max-width: 700px) {
+  #main { flex-direction: column; }
+  #actions-col, #upgrades-col { min-width: auto; }
+}
+</style>
+</head>
+<body>
+<div id="game">
+  <h1>FISH ALL THE WAY DOWN</h1>
+  <div id="era-name">Era 1: The Lake</div>
+
+  <div id="news-ticker"></div>
+
+  <div id="threat-meter">
+    <div class="meter-bar"><div class="meter-fill" id="threat-fill"></div></div>
+    <div class="meter-label">FISH THREAT: <span id="threat-pct">0</span>%</div>
+  </div>
+
+  <div id="school-burst">GALACTIC FISH SCHOOL! 10x production for 5 seconds!</div>
+
+  <div id="resources"></div>
+
+  <div id="fish-species"></div>
+  <div id="last-catch"></div>
+
+  <div id="main">
+    <div id="actions-col">
+      <button class="action-btn" id="btn-cast" onclick="castLine()">Cast Line<span class="click-feedback" id="cast-feedback"></span></button>
+      <button class="action-btn" id="btn-trap" onclick="checkTraps()">Check Traps<span class="click-feedback" id="trap-feedback"></span></button>
+      <button class="action-btn" id="btn-cook" onclick="cookMeals()">Cook Fish<span class="click-feedback" id="cook-feedback"></span></button>
+      <button class="action-btn" id="btn-sell" onclick="sellMeals()">Sell Meals<span class="click-feedback" id="sell-feedback"></span></button>
+      <div id="whale-event">
+        <button class="action-btn" onclick="harvestWhale()">SPACE WHALE SPOTTED! Click to harvest!</button>
+      </div>
+      <div id="era-transition">
+        <div class="transition-story" id="transition-story"></div>
+        <button class="action-btn" id="transition-btn" onclick="advanceEra()"></button>
+      </div>
+    </div>
+    <div id="upgrades-col">
+      <div id="upgrade-tabs"></div>
+      <div id="upgrade-list"></div>
+    </div>
+  </div>
+
+  <div id="save-controls">
+    <button onclick="saveGame()">Save</button>
+    <button onclick="if(confirm('Reset all progress?')){resetGame()}">Reset</button>
+  </div>
+</div>
+
+<div id="end-screen">
+  <h2>FISH ALL THE WAY DOWN</h2>
+  <div class="poem" id="end-poem"></div>
+  <div class="title" id="end-title"></div>
+  <div class="stats" id="end-stats"></div>
+  <button onclick="resetGame()">Cast Again</button>
+</div>
+
+<script>
+// ============================================
+// NUMBER FORMATTING
+// ============================================
+const SUFFIXES = ['','K','M','B','T','Q','Qi','Sx','Sp','Oc','No','Dc'];
+function fmt(n) {
+  if (n === undefined || n === null || isNaN(n)) return '0';
+  if (n < 0) return '-' + fmt(-n);
+  if (n < 1000) return n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : Math.floor(n).toString();
+  let tier = Math.floor(Math.log10(Math.abs(n)) / 3);
+  if (tier >= SUFFIXES.length) tier = SUFFIXES.length - 1;
+  if (tier === 0) return Math.floor(n).toLocaleString();
+  const scale = Math.pow(10, tier * 3);
+  const scaled = n / scale;
+  return scaled.toFixed(scaled < 10 ? 2 : scaled < 100 ? 1 : 0) + SUFFIXES[tier];
+}
+function fmtMoney(n) { return '$' + fmt(n); }
+
+// ============================================
+// ERA DATA
+// ============================================
+const ERAS = [
+  // ERA 1: The Lake
+  {
+    name: 'The Lake',
+    fishTypes: [
+      { name:'Mountain Trout', desc:'The most basic of fish. It looked at you with sad eyes.', value:1 },
+      { name:'Bluegill', desc:'Technically a sunfish. Technically edible.', value:0.8 },
+      { name:'Smallmouth Bass', desc:'It has a big mouth for a smallmouth.', value:1.5 },
+    ],
+    trapType: 'Bucket Trap', trapCreature: 'Crawdads', trapRate: 0.2, trapPremium: 2,
+    fishPerMeal: 3,
+    baseMealPrice: 0.50,
+    upgrades: [
+      // Catching
+      { id:'e1_bait', cat:'catching', name:'Better Bait', desc:'"Worms from the gas station. Fancy."', cost:5, mult:1.15, effect:'fishPerClick', val:1, max:50 },
+      { id:'e1_rod', cat:'catching', name:'Fiberglass Rod', desc:'"Goodbye, stick-with-string."', cost:25, mult:1.15, effect:'fishPerClick', val:2, max:50 },
+      { id:'e1_tackle', cat:'catching', name:'Tackle Box', desc:'"Now you look like you know what you\'re doing."', cost:75, mult:1.15, effect:'fishPerClick', val:3, max:50 },
+      { id:'e1_hat', cat:'catching', name:'Lucky Hat', desc:'"It smells terrible. The fish love it."', cost:200, mult:1.15, effect:'fishPerClick', val:5, max:50 },
+      // Trapping
+      { id:'e1_trap1', cat:'trapping', name:'Bucket Trap', desc:'"A bucket with bait. Engineering at its finest."', cost:20, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e1_trap2', cat:'trapping', name:'Better Buckets', desc:'"Upgraded from Home Depot\'s clearance aisle."', cost:100, mult:1.3, effect:'trapRate', val:0.1, max:10 },
+      // Cooking
+      { id:'e1_season', cat:'cooking', name:'Seasoning', desc:'"Salt and pepper. Revolutionary."', cost:15, mult:1, effect:'mealPrice', val:0.25, max:1 },
+      { id:'e1_foil', cat:'cooking', name:'Tin Foil Wrap', desc:'"Presentation matters, even at a campsite."', cost:60, mult:1, effect:'mealPrice', val:0.50, max:1 },
+      // Automation
+      { id:'e1_bobber', cat:'automation', name:'Bobber Alert', desc:'"It bobs. You grab. Semi-automatic."', cost:150, mult:1.15, effect:'fishPerSec', val:0.5, max:20 },
+    ],
+    storyBeats: [
+      { id:'s1_first', trigger: s => s.totalFishEver >= 1, text:'You caught a fish! It flopped around for a bit. You feel... something. Is this what purpose feels like?', type:'narrative' },
+      { id:'s1_50', trigger: s => s.totalFishEver >= 50, text:'NEWS: "Local Man Catches 50 Fish, Family \'Concerned But Supportive\'"', type:'headline' },
+      { id:'s1_10bucks', trigger: s => s.totalMoneyEver >= 10, text:'You made ten dollars selling fish meals to hikers. The hikers did not ask about your food safety certification.', type:'narrative' },
+      { id:'s1_crawdad', trigger: s => s.totalTrappedEver >= 5, text:'The crawdads are practically crawling into the bucket. Maybe they want to be eaten? Don\'t think about it.', type:'narrative' },
+    ],
+    transition: {
+      story: '"Hey, nice fish! My buddy and I are camping downstream. You should set up a proper campsite -- I bet you could sell meals to the whole campground. Here, I brought extra rods."',
+      btnText: 'Set Up Camp',
+      cost: { money: 250 },
+    },
+  },
+  // ERA 2: The Campsite
+  {
+    name: 'The Campsite',
+    fishTypes: [
+      { name:'Rainbow Trout', desc:'Nature\'s most fabulous fish.', value:1.2 },
+      { name:'Catfish', desc:'Has whiskers. Refuses to purr.', value:1 },
+      { name:'Brook Trout', desc:'Pretty. Tasty. Doomed.', value:1.5 },
+    ],
+    trapType: 'Wire Trap', trapCreature: 'Crayfish', trapRate: 0.5, trapPremium: 2,
+    fishPerMeal: 2,
+    baseMealPrice: 1.25,
+    upgrades: [
+      { id:'e2_rod2', cat:'catching', name:'Second Rod', desc:'"Two rods, zero shame."', cost:300, mult:1.15, effect:'fishPerClick', val:10, max:50 },
+      { id:'e2_rod3', cat:'catching', name:'Third Rod', desc:'"People are starting to stare."', cost:800, mult:1.15, effect:'fishPerClick', val:15, max:50 },
+      { id:'e2_sonar', cat:'catching', name:'Sonar Fish Finder', desc:'"Technology: 1, Fish: 0."', cost:1500, mult:1.15, effect:'fishPerClick', val:25, max:50 },
+      { id:'e2_friends', cat:'catching', name:'Invite Friends', desc:'"They think this is a fun trip. They are wrong. This is business."', cost:3000, mult:1.15, effect:'fishPerClick', val:40, max:50 },
+      { id:'e2_trap1', cat:'trapping', name:'Wire Trap', desc:'"More sophisticated than a bucket. Marginally."', cost:400, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e2_trap2', cat:'trapping', name:'Crayfish Lure', desc:'"Smells like victory. And fish guts."', cost:1500, mult:1.3, effect:'trapRate', val:0.3, max:10 },
+      { id:'e2_kitchen', cat:'cooking', name:'Camp Kitchen', desc:'"A folding table counts as a kitchen, right?"', cost:500, mult:1, effect:'mealPrice', val:1.25, max:1 },
+      { id:'e2_menu', cat:'cooking', name:'Menu Board', desc:'"Today\'s special: Fish. Tomorrow\'s special: Also fish."', cost:1200, mult:1, effect:'mealPrice', val:1.50, max:1 },
+      { id:'e2_cooler', cat:'cooking', name:'Cooler Storage', desc:'"Less waste, more profit. MBA not required."', cost:2500, mult:1, effect:'fishPerMeal', val:-1, max:1 },
+      { id:'e2_holder', cat:'automation', name:'Rod Holder Rig', desc:'"The rod catches fish while you do nothing. Is this ethical? Who cares."', cost:800, mult:1.15, effect:'fishPerSec', val:3, max:20 },
+      { id:'e2_buddy', cat:'automation', name:'Buddy System', desc:'"Your friend Dave catches fish. You pay Dave in fish. Dave doesn\'t understand economics."', cost:2000, mult:1.15, effect:'fishPerSec', val:8, max:20 },
+    ],
+    storyBeats: [
+      { id:'s2_dualwield', trigger: s => s.upgrades.e2_rod2 >= 1, text:'You are now dual-wielding fishing rods. Somewhere, a fly-fishing purist just felt a disturbance.', type:'narrative' },
+      { id:'s2_2000', trigger: s => s.totalFishEver >= 2000, text:'NEWS: "Campground Fish Supply Mysteriously Dwindling, Local Angler \'Has No Idea Why\'"', type:'headline' },
+      { id:'s2_money', trigger: s => s.totalMoneyEver >= 2000, text:'You have made two thousand dollars selling campfire fish. Your mother called. She wants to know if you\'ve considered law school.', type:'narrative' },
+    ],
+    transition: {
+      story: '"The campground lake is fished out. But there\'s a river twenty miles east -- the locals say the fish there are twice the size. You\'d need a boat, though..."',
+      btnText: 'Buy a Boat',
+      cost: { money: 6000 },
+    },
+  },
+  // ERA 3: The River
+  {
+    name: 'The River',
+    fishTypes: [
+      { name:'Chinook Salmon', desc:'The king of fish. Tastes like ambition.', value:1.5 },
+      { name:'Steelhead', desc:'Half trout, half determination.', value:1.3 },
+      { name:'Northern Pike', desc:'Has 700 teeth. You counted.', value:1.8 },
+      { name:'Sturgeon', desc:'This fish is older than your family tree.', value:2.5 },
+    ],
+    trapType: 'River Cage', trapCreature: 'Freshwater Crabs', trapRate: 1, trapPremium: 2.5,
+    fishPerMeal: 2,
+    baseMealPrice: 4,
+    upgrades: [
+      { id:'e3_nets', cat:'catching', name:'River Nets', desc:'"Why catch one fish when you can catch eighty?"', cost:8000, mult:1.15, effect:'fishPerClick', val:80, max:50 },
+      { id:'e3_traps', cat:'catching', name:'Fish Traps', desc:'"The fish walk right in. Well, swim right in."', cost:20000, mult:1.15, effect:'fishPerClick', val:150, max:50 },
+      { id:'e3_depth', cat:'catching', name:'Depth Charges', desc:'"This is definitely not legal. The fish don\'t seem to mind. (They\'re dead.)"', cost:50000, mult:1.15, effect:'fishPerClick', val:300, max:50 },
+      { id:'e3_pelican', cat:'catching', name:'Trained Pelican', desc:'"His name is Gerald. Gerald is employee of the month."', cost:120000, mult:1.15, effect:'fishPerClick', val:500, max:50 },
+      { id:'e3_trap1', cat:'trapping', name:'River Cage', desc:'"A sophisticated trap for sophisticated crabs."', cost:10000, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e3_trap2', cat:'trapping', name:'Crab Bait Upgrade', desc:'"Premium bait for premium crabs."', cost:40000, mult:1.3, effect:'trapRate', val:0.5, max:10 },
+      { id:'e3_smoke', cat:'cooking', name:'Smoke & Cure', desc:'"Smoked salmon: the gateway drug to fiscal responsibility."', cost:15000, mult:1, effect:'mealPrice', val:6, max:1 },
+      { id:'e3_stand', cat:'cooking', name:'Roadside Stand', desc:'"A sign, a table, and the American dream."', cost:40000, mult:1, effect:'mealPrice', val:12, max:1 },
+      { id:'e3_drift', cat:'automation', name:'Drift Nets', desc:'"The river does the work. You take the credit."', cost:25000, mult:1.15, effect:'fishPerSec', val:50, max:20 },
+      { id:'e3_smoker', cat:'automation', name:'Auto-Smoker', desc:'"It smokes fish 24/7. Your neighbors filed a complaint. Then bought a meal."', cost:60000, mult:1.15, effect:'mealsPerSec', val:10, max:20 },
+      { id:'e3_hand', cat:'automation', name:'Hired Hand', desc:'"Minimum wage, maximum fish."', cost:100000, mult:1.15, effect:'fishPerSec', val:150, max:20 },
+    ],
+    storyBeats: [
+      { id:'s3_boat', trigger: s => s.era === 3, text:'You now own a boat. You have become the person you swore you\'d never become. It feels amazing.', type:'narrative', once:true },
+      { id:'s3_20k', trigger: s => s.totalFishEver >= 20000, text:'NEWS: "River Ecosystem \'Under Unprecedented Pressure,\' Says Scientist Nobody Listens To"', type:'headline' },
+      { id:'s3_critic', trigger: s => s.totalMoneyEver >= 50000, text:'A food critic visited your roadside stand. Review: "Surprisingly not dead yet. 3 stars." You frame it.', type:'narrative' },
+    ],
+    transition: {
+      story: '"I represent a coastal investment group. We\'ve been watching your... operation. The ocean has a lot more fish than this river. We\'d like to offer you a partnership. There\'s a dock with your name on it."',
+      btnText: 'Go Coastal',
+      cost: { money: 200000 },
+    },
+  },
+  // ERA 4: The Coast
+  {
+    name: 'The Coast',
+    fishTypes: [
+      { name:'Atlantic Cod', desc:'The fish that launched a thousand ships. And several wars.', value:2 },
+      { name:'Swordfish', desc:'Comes with its own knife.', value:3 },
+      { name:'Yellowfin Tuna', desc:'Fast, sleek, delicious. The sports car of the sea.', value:4 },
+      { name:'Lobster', desc:'Technically not a fish. Nobody cares.', value:5 },
+      { name:'Mahi-Mahi', desc:'So nice they named it twice.', value:3.5 },
+    ],
+    trapType: 'Crab Pots', trapCreature: 'Blue Crabs & Lobsters', trapRate: 3, trapPremium: 3,
+    fishPerMeal: 2,
+    baseMealPrice: 22,
+    newResource: 'reputation',
+    upgrades: [
+      { id:'e4_deep', cat:'catching', name:'Deep Sea Rods', desc:'"These rods go deep. Like, philosophically deep."', cost:250000, mult:1.15, effect:'fishPerClick', val:2000, max:50 },
+      { id:'e4_trawl', cat:'catching', name:'Trawl Nets', desc:'"Drag the bottom. Question nothing."', cost:700000, mult:1.15, effect:'fishPerClick', val:5000, max:50 },
+      { id:'e4_sonar', cat:'catching', name:'Sonar Array', desc:'"You can see every fish in the ocean. They cannot hide."', cost:2e6, mult:1.15, effect:'fishPerClick', val:10000, max:50 },
+      { id:'e4_pots', cat:'catching', name:'Crab Pots (Bonus)', desc:'"Not crabs. Fish that fell into crab pots. We don\'t ask questions."', cost:5e6, mult:1.15, effect:'fishPerClick', val:20000, max:50 },
+      { id:'e4_trap1', cat:'trapping', name:'Crab Pots', desc:'"Professional grade. The crabs never stood a chance."', cost:300000, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e4_trap2', cat:'trapping', name:'Lobster Lure', desc:'"Lobsters are basically sea bugs. Delicious sea bugs."', cost:1e6, mult:1.3, effect:'trapRate', val:1, max:10 },
+      { id:'e4_restaurant', cat:'cooking', name:'Seafood Restaurant', desc:'"White tablecloths. Candles. Fish. Civilization at last."', cost:500000, mult:1, effect:'mealPrice', val:33, max:1 },
+      { id:'e4_catering', cat:'cooking', name:'Catering Service', desc:'"Weddings, funerals, bar mitzvahs. Fish for every occasion."', cost:1.5e6, mult:1, effect:'mealPrice', val:65, max:1, reqRep:1000 },
+      { id:'e4_chef', cat:'cooking', name:'Celebrity Chef', desc:'"Chef Pierre doesn\'t cook. He \'creates experiences.\' Same fish."', cost:4e6, mult:1, effect:'mealPrice', val:130, max:1, reqRep:5000 },
+      { id:'e4_boat', cat:'automation', name:'Fishing Boat', desc:'"It fishes while you sleep. You sleep a lot now."', cost:800000, mult:1.15, effect:'fishPerSec', val:2000, max:20 },
+      { id:'e4_staff', cat:'automation', name:'Kitchen Staff', desc:'"A team of chefs who ask no questions and fear no health inspector."', cost:2e6, mult:1.15, effect:'mealsPerSec', val:500, max:20 },
+      { id:'e4_boat2', cat:'automation', name:'Second Boat', desc:'"Two boats. You are now, technically, a fleet."', cost:5e6, mult:1.15, effect:'fishPerSec', val:8000, max:20 },
+    ],
+    storyBeats: [
+      { id:'s4_rep', trigger: s => s.resources.reputation >= 100, text:'People know your name. Well, they know your restaurant\'s name. Close enough.', type:'narrative' },
+      { id:'s4_100k', trigger: s => s.totalFishEver >= 100000, text:'NEWS: "Coastal Fish Population Drops 40%. Local Restaurateur Says \'Correlation Is Not Causation\'"', type:'headline' },
+      { id:'s4_mill', trigger: s => s.totalMoneyEver >= 1e6, text:'You are a millionaire. A fish millionaire. Your LinkedIn says "Aquatic Protein Entrepreneur."', type:'narrative' },
+    ],
+    transition: {
+      story: '"I\'ve seen a lot of startups, but nobody disrupts fish like you. Let me write you a check. We\'re going to scale this thing. We\'re going to franchise. We\'re going to IPO. We\'re going to put fish in every mouth in America."',
+      btnText: 'Incorporate',
+      cost: { money: 8e6, reputation: 10000 },
+    },
+  },
+  // ERA 5: The Business
+  {
+    name: 'The Business',
+    fishTypes: [
+      { name:'Farm-Raised Salmon', desc:'Genetically optimized. Emotionally devastated.', value:3 },
+      { name:'Pollock', desc:'The fish stick fish. Backbone of mediocre meals everywhere.', value:2 },
+      { name:'Anchovies (Bulk)', desc:'Nobody orders them. Everyone eats them.', value:1.5 },
+      { name:'Tilapia', desc:'The fish of the future. The future is bland.', value:2.5 },
+    ],
+    trapType: 'Industrial Traps', trapCreature: 'King Crab & Prawns', trapRate: 10, trapPremium: 3,
+    fishPerMeal: 2,
+    baseMealPrice: 250,
+    upgrades: [
+      { id:'e5_fleet', cat:'catching', name:'Fleet Expansion (x3)', desc:'"Three more boats. HR wants to talk about \'scalability.\'"', cost:15e6, mult:1.15, effect:'fishPerClick', val:50000, max:50 },
+      { id:'e5_factory', cat:'catching', name:'Factory Trawler', desc:'"A floating factory. It catches fish and crushes souls."', cost:40e6, mult:1.15, effect:'fishPerClick', val:150000, max:50 },
+      { id:'e5_heli', cat:'catching', name:'Helicopter Spotters', desc:'"Fish from above. They never see it coming."', cost:100e6, mult:1.15, effect:'fishPerClick', val:400000, max:50 },
+      { id:'e5_drone', cat:'catching', name:'Drone Swarm', desc:'"A thousand drones, zero fish left."', cost:250e6, mult:1.15, effect:'fishPerClick', val:1e6, max:50 },
+      { id:'e5_trap1', cat:'trapping', name:'Industrial Traps', desc:'"Factory-scale crustacean harvesting."', cost:20e6, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e5_trap2', cat:'trapping', name:'Prawn Farms', desc:'"Prawns raised in captivity. They never knew freedom."', cost:80e6, mult:1.3, effect:'trapRate', val:5, max:10 },
+      { id:'e5_beach', cat:'restaurants', name:'Beach Shack', desc:'"Flip flops required. Shirts optional."', cost:10e6, mult:1.15, effect:'mealPrice', val:50, max:20 },
+      { id:'e5_sushi', cat:'restaurants', name:'Sushi Bar', desc:'"Raw fish, rolled in rice, sold for 10x the price."', cost:25e6, mult:1.15, effect:'mealPrice', val:100, max:20 },
+      { id:'e5_family', cat:'restaurants', name:'Family Restaurant', desc:'"Kids eat free. Adults pay triple."', cost:60e6, mult:1.15, effect:'mealPrice', val:200, max:20 },
+      { id:'e5_chain', cat:'cooking', name:'Chain Restaurants', desc:'"FishKing: \'You Deserve Fish Today.\'"', cost:30e6, mult:1, effect:'mealPrice', val:350, max:1 },
+      { id:'e5_frozen', cat:'cooking', name:'Frozen Meals Line', desc:'"Now in every freezer in America. You can\'t escape fish."', cost:80e6, mult:1, effect:'mealPrice', val:900, max:1 },
+      { id:'e5_ai', cat:'automation', name:'Fishing Fleet AI', desc:'"The AI optimizes fish death. It does not feel bad about this."', cost:50e6, mult:1.15, effect:'fishPerSec', val:100000, max:20 },
+      { id:'e5_plant', cat:'automation', name:'Automated Plant', desc:'"No humans in the loop. The fish loop is fully closed."', cost:120e6, mult:1.15, effect:'mealsPerSec', val:25000, max:20 },
+      { id:'e5_franchise', cat:'automation', name:'Franchise Network', desc:'"Reputation grows while you do literally nothing."', cost:200e6, mult:1.15, effect:'repPerSec', val:100, max:20 },
+    ],
+    storyBeats: [
+      { id:'s5_inc', trigger: s => s.era === 5, text:'FishCorp, Inc. is born. Your board of directors includes two VCs, a marine biologist who sold out, and your mom.', type:'narrative', once:true },
+      { id:'s5_1m', trigger: s => s.totalFishEver >= 1e6, text:'NEWS: "FishCorp IPO Soars 400% On First Day. Analysts: \'We Don\'t Understand It Either\'"', type:'headline' },
+      { id:'s5_100m', trigger: s => s.totalMoneyEver >= 100e6, text:'Fortune 500 list has a new entry. The magazine cover reads: "The Fisher King: How One Person Emptied The Sea And Filled Their Wallet."', type:'narrative' },
+    ],
+    transition: {
+      story: '"We\'ve fished out the Atlantic. The Pacific is at 30%. We need to go bigger. We need government contracts. We need to become... a corporation."',
+      btnText: 'Go Global',
+      cost: { money: 1.5e9, reputation: 100000 },
+    },
+  },
+  // ERA 6: The Corporation
+  {
+    name: 'The Corporation',
+    fishTypes: [
+      { name:'Bluefin Tuna', desc:'Endangered. Expensive. Delicious. In that order.', value:5 },
+      { name:'Antarctic Krill (Bulk)', desc:'Technically not fish. Technically trillions of them.', value:1 },
+      { name:'Deep Sea Anglerfish', desc:'Ugly as sin. Tastes like victory.', value:4 },
+      { name:'Giant Squid', desc:'It fought back. It lost.', value:6 },
+    ],
+    trapType: 'Deep Sea Traps', trapCreature: 'Giant Spider Crabs & Mantis Shrimp', trapRate: 50, trapPremium: 3.5,
+    fishPerMeal: 2,
+    baseMealPrice: 1500,
+    newResource: 'contracts',
+    upgrades: [
+      { id:'e6_super', cat:'catching', name:'Supertrawler', desc:'"500 meters long. Catches everything. EVERYTHING."', cost:2e9, mult:1.15, effect:'fishPerClick', val:5e6, max:50 },
+      { id:'e6_sub', cat:'catching', name:'Submarine Fleet', desc:'"Hunt fish where they think they\'re safe. Nowhere is safe."', cost:6e9, mult:1.15, effect:'fishPerClick', val:15e6, max:50 },
+      { id:'e6_vacuum', cat:'catching', name:'Ocean Floor Vacuum', desc:'"Sucks fish off the ocean floor. Marine biologists are crying."', cost:18e9, mult:1.15, effect:'fishPerClick', val:50e6, max:50 },
+      { id:'e6_gmo', cat:'catching', name:'Genetic Fish Farms', desc:'"Why catch fish when you can MAKE fish? Fish 2.0."', cost:50e9, mult:1.15, effect:'fishPerClick', val:150e6, max:50 },
+      { id:'e6_trap1', cat:'trapping', name:'Deep Sea Traps', desc:'"Traps at crushing depth. The crabs don\'t mind."', cost:3e9, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e6_trap2', cat:'trapping', name:'Mantis Shrimp Bait', desc:'"The shrimp punch things. The traps punch back."', cost:15e9, mult:1.3, effect:'trapRate', val:20, max:10 },
+      { id:'e6_michelin', cat:'restaurants', name:'Michelin Star', desc:'"One star. Then two. Then they stopped counting."', cost:5e9, mult:1.15, effect:'mealPrice', val:2000, max:20 },
+      { id:'e6_fastfood', cat:'restaurants', name:'Fast Food Chain', desc:'"McFish: Billions and Billions Served."', cost:3e9, mult:1.15, effect:'mealPrice', val:500, max:50 },
+      { id:'e6_trucks', cat:'restaurants', name:'Food Trucks', desc:'"Mobile fish delivery. The fish truck plays a jingle."', cost:8e9, mult:1.15, effect:'mealPrice', val:1000, max:20 },
+      { id:'e6_global', cat:'cooking', name:'Global Distribution', desc:'"FishCorp meals: now in 194 countries. And one disputed territory."', cost:5e9, mult:1, effect:'mealPrice', val:3500, max:1 },
+      { id:'e6_luxury', cat:'cooking', name:'Luxury Brand', desc:'"\'Poisson d\'Or\' -- it\'s the same fish in a gold box."', cost:15e9, mult:1, effect:'mealPrice', val:10000, max:1, reqContracts:10 },
+      { id:'e6_globalai', cat:'automation', name:'Global Fishing AI', desc:'"The AI has achieved fish-consciousness. It chose to keep fishing."', cost:8e9, mult:1.15, effect:'fishPerSec', val:5e6, max:20 },
+      { id:'e6_autoworld', cat:'automation', name:'Auto-Processing Worldwide', desc:'"Every meal on Earth is now fish. There is no alternative."', cost:20e9, mult:1.15, effect:'mealsPerSec', val:1e6, max:20 },
+      { id:'e6_lobby', cat:'automation', name:'Government Lobby', desc:'"Elected officials now legally required to eat fish for lunch."', cost:40e9, mult:1.15, effect:'contractsPerSec', val:0.033, max:20 },
+      { id:'e6_contract', cat:'special', name:'Buy Contract', desc:'"A government contract. Passive income forever."', cost:5e9, mult:1.5, effect:'contracts', val:1, max:100 },
+    ],
+    storyBeats: [
+      { id:'s6_global', trigger: s => s.era === 6, text:'FishCorp is now the largest company on Earth by biomass processed. The UN sent a letter. You sent them fish.', type:'narrative', once:true },
+      { id:'s6_100m', trigger: s => s.totalFishEver >= 100e6, text:'NEWS: "Ocean Declared \'Functionally a Fish Farm.\' Whales File Class Action Lawsuit"', type:'headline' },
+      { id:'s6_contracts', trigger: s => s.resources.contracts >= 50, text:'Every government on Earth now has a FishCorp contract. The Secretary General\'s lunch order: Fish. Always fish.', type:'narrative' },
+    ],
+    transition: {
+      story: '"You own every ocean. Every fish. You have a monopoly on aquatic protein for the entire human species. There\'s nothing left to conquer... on this planet."',
+      btnText: 'Total Oceanic Dominion',
+      cost: { money: 400e9, contracts: 50 },
+    },
+  },
+  // ERA 7: World Domination
+  {
+    name: 'World Domination',
+    fishTypes: [
+      { name:'Last Wild Bluefin', desc:'There was one left. Was.', value:8 },
+      { name:'Synthetic Fish v1.0', desc:'Lab-grown. Tastes like existential dread. Sells great.', value:3 },
+      { name:'Megalodon Clone', desc:'We brought it back. It\'s angry. It\'s delicious.', value:10 },
+      { name:'Deep Trench Horrorfish', desc:'Found at 36,000 feet. Has no eyes. Has many teeth.', value:7 },
+    ],
+    trapType: 'Ocean Floor Arrays', trapCreature: 'Colossal Squid & Coconut Crabs', trapRate: 200, trapPremium: 4,
+    fishPerMeal: 2,
+    baseMealPrice: 15000,
+    upgrades: [
+      { id:'e7_allboats', cat:'catching', name:'Every Boat on Earth', desc:'"You bought all the boats. ALL of them."', cost:500e9, mult:1.15, effect:'fishPerClick', val:500e6, max:50 },
+      { id:'e7_drain', cat:'catching', name:'Ocean Draining Initiative', desc:'"Phase 1: Drain ocean. Phase 2: Collect fish. Phase 3: Profit."', cost:1.5e12, mult:1.15, effect:'fishPerClick', val:2e9, max:50 },
+      { id:'e7_synth', cat:'catching', name:'Synthetic Fish Factory', desc:'"Why drain the ocean when you can just print fish?"', cost:5e12, mult:1.15, effect:'fishPerClick', val:8e9, max:50 },
+      { id:'e7_singularity', cat:'catching', name:'Fish Singularity', desc:'"The fish are now self-replicating. This was not the plan."', cost:15e12, mult:1.15, effect:'fishPerClick', val:30e9, max:50 },
+      { id:'e7_trap1', cat:'trapping', name:'Ocean Floor Arrays', desc:'"Every square meter of ocean floor: trapped."', cost:300e9, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e7_trap2', cat:'trapping', name:'Megalodon Bait', desc:'"Clone the megalodon. Trap the megalodon. Eat the megalodon."', cost:2e12, mult:1.3, effect:'trapRate', val:100, max:10 },
+      { id:'e7_mandatory', cat:'restaurants', name:'Mandatory Fish Cafeterias', desc:'"Every workplace. Every school. Fish."', cost:2e12, mult:1.15, effect:'mealPrice', val:15000, max:20 },
+      { id:'e7_currency', cat:'restaurants', name:'Fish Currency Exchange', desc:'"The dollar is dead. Long live the Fish Standard."', cost:8e12, mult:1, effect:'mealPrice', val:170000, max:1 },
+      { id:'e7_diet', cat:'cooking', name:'Mandatory Fish Diet Act', desc:'"The people voted for fish. Well, you voted for them."', cost:2e12, mult:1, effect:'mealPrice', val:35000, max:1 },
+      { id:'e7_megafleet', cat:'automation', name:'Autonomous Megafleet', desc:'"Self-sailing ships that answer to no one. Except you."', cost:3e12, mult:1.15, effect:'fishPerSec', val:500e6, max:20 },
+      { id:'e7_autokitch', cat:'automation', name:'Global Auto-Kitchen', desc:'"Every kitchen on Earth now auto-cooks fish. Stoves have been banned."', cost:10e12, mult:1.15, effect:'mealsPerSec', val:100e6, max:20 },
+      { id:'e7_worldgov', cat:'automation', name:'World Government (Fish Division)', desc:'"You didn\'t conquer the world. You just... acquired it."', cost:20e12, mult:1.15, effect:'contractsPerSec', val:0.33, max:20 },
+    ],
+    storyBeats: [
+      { id:'s7_own', trigger: s => s.era === 7, text:'You own the planet\'s food supply. Forbes called. They want to know if you\'d like to be on the cover or if you\'d prefer to buy Forbes.', type:'narrative', once:true },
+      { id:'s7_1b', trigger: s => s.totalFishEver >= 1e9, text:'NEWS: "Earth Reclassified as \'Fish Processing Facility\' by Galactic Survey"', type:'headline' },
+      { id:'s7_moon', trigger: s => s.totalMoneyEver >= 10e12, text:'A telescope detects a signal from the moon. The message is simple: "We have fish up here too." Your eyes narrow.', type:'narrative' },
+    ],
+    transition: {
+      story: '"Sir. Ma\'am. We\'ve confirmed it. There are fish on the Moon. Lunar ice caves. Billions of them. We don\'t know how. We don\'t care how. We need to get up there."',
+      btnText: 'Launch the Moon Mission',
+      cost: { money: 40e12 },
+    },
+  },
+  // ERA 8: Moon Colony
+  {
+    name: 'Moon Colony',
+    fishTypes: [
+      { name:'Lunar Ice Trout', desc:'Frozen for a billion years. Still tastes fresh.', value:5 },
+      { name:'Crater Eel', desc:'Lives in moon craters. Slippery in low gravity.', value:7 },
+      { name:'Regolith Carp', desc:'Eats moon dust. Don\'t ask what it tastes like.', value:6 },
+      { name:'Dark Side Anglerfish', desc:'Its light is the only light on the dark side. Poetic. Edible.', value:10 },
+    ],
+    trapType: 'Lunar Pit Traps', trapCreature: 'Moon Crabs (crystalline shells)', trapRate: 1000, trapPremium: 4,
+    fishPerMeal: 2,
+    baseMealPrice: 200000,
+    newResource: 'rocketFuel',
+    upgrades: [
+      { id:'e8_drill', cat:'catching', name:'Lunar Drill Rig', desc:'"Drill into the moon. Extract fish. Don\'t think about the ethics."', cost:50e12, mult:1.15, effect:'fishPerClick', val:100e9, max:50, reqFuel:5 },
+      { id:'e8_rover', cat:'catching', name:'Moon Rover Fleet', desc:'"Roombas, but for fish, on the moon."', cost:150e12, mult:1.15, effect:'fishPerClick', val:500e9, max:50, reqFuel:15 },
+      { id:'e8_crater', cat:'catching', name:'Crater Trawler', desc:'"A trawler. On the moon. In a crater. Normal stuff."', cost:500e12, mult:1.15, effect:'fishPerClick', val:2e12, max:50, reqFuel:40 },
+      { id:'e8_accel', cat:'catching', name:'Lunar Fish Accelerator', desc:'"A particle accelerator, but for fish. Smashes them into meals directly."', cost:1.5e15, mult:1.15, effect:'fishPerClick', val:10e12, max:50, reqFuel:100 },
+      { id:'e8_trap1', cat:'trapping', name:'Lunar Pit Traps', desc:'"Moon crabs with crystalline shells. Beautiful and delicious."', cost:30e12, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e8_trap2', cat:'trapping', name:'Regolith Lure', desc:'"Moon dust: the ultimate crab attractant."', cost:200e12, mult:1.3, effect:'trapRate', val:500, max:10 },
+      { id:'e8_zerog', cat:'restaurants', name:'Zero-G Diner', desc:'"Food floats to your mouth. The future is here."', cost:100e12, mult:1.15, effect:'mealPrice', val:200000, max:20 },
+      { id:'e8_lunar', cat:'restaurants', name:'Lunar Fine Dining', desc:'"Reservation waitlist: 4 years. Menu: Fish."', cost:500e12, mult:1, effect:'mealPrice', val:2.6e6, max:1 },
+      { id:'e8_autodrill', cat:'automation', name:'Lunar Auto-Drill', desc:'"It drills while you stare at Earth and question your choices."', cost:200e12, mult:1.15, effect:'fishPerSec', val:50e9, max:20 },
+      { id:'e8_spacebot', cat:'automation', name:'Space Kitchen Bot', desc:'"A robot chef with one setting: fish."', cost:800e12, mult:1.15, effect:'mealsPerSec', val:10e9, max:20 },
+      { id:'e8_pipeline', cat:'automation', name:'Earth-Moon Fish Pipeline', desc:'"A literal tube from the Moon to Earth. Fish travel at Mach 3."', cost:2e15, mult:1.15, effect:'fishPerSec', val:500e9, max:20 },
+      { id:'e8_fuel', cat:'special', name:'Convert $1T to Rocket Fuel', desc:'"Money goes up. Rockets go up. Coincidence?"', cost:1e12, mult:1.2, effect:'rocketFuel', val:1, max:500 },
+      { id:'e8_autofuel', cat:'special', name:'Auto Fuel Converter', desc:'"Passive fuel generation."', cost:5e15, mult:1, effect:'fuelPerSec', val:0.1, max:1 },
+    ],
+    storyBeats: [
+      { id:'s8_moon', trigger: s => s.era === 8, text:'One small step for man. One giant leap for fish-kind.', type:'narrative', once:true },
+      { id:'s8_10b', trigger: s => s.totalFishEver >= 10e9, text:'NEWS: "Moon Fish Confirmed Real. Scientists Baffled. FishCorp Stock Up 8000%"', type:'headline' },
+      { id:'s8_fuel', trigger: s => s.resources.rocketFuel >= 100, text:'Your rockets have burned more fuel than NASA\'s entire history. NASA sent a congratulations card. And a resume.', type:'narrative' },
+    ],
+    transition: {
+      story: '"We\'ve detected massive aquatic biosignatures on Europa, Titan, and Enceladus. The moons of Jupiter and Saturn are teeming with fish. Sir, the solar system is a fishbowl."',
+      btnText: 'Solar Expansion Initiative',
+      cost: { money: 8e15, rocketFuel: 150 },
+    },
+  },
+  // ERA 9: Solar Expansion
+  {
+    name: 'Solar Expansion',
+    fishTypes: [
+      { name:'Europa Ice Bass', desc:'Swimming under miles of ice. Free at last. Briefly.', value:8 },
+      { name:'Titan Methane Shark', desc:'Swims in liquid methane. Tastes like gasoline. Customers love it.', value:10 },
+      { name:'Enceladus Geyser Fish', desc:'Launched into space by geysers. Self-delivering.', value:7 },
+      { name:'Jupiter Atmospheric Jellyfish', desc:'Not a fish. Not from Earth. Still counts.', value:12 },
+      { name:'Saturn Ring Koi', desc:'Lives in the rings of Saturn. Absolutely magnificent. Absolutely doomed.', value:15 },
+    ],
+    trapType: 'Gravity Wells', trapCreature: 'Europa Ice Crabs & Titan Methane Lobsters', trapRate: 5000, trapPremium: 5,
+    fishPerMeal: 2,
+    baseMealPrice: 3e6,
+    upgrades: [
+      { id:'e9_europa', cat:'catching', name:'Europa Drill Fleet', desc:'"Drill through ice, extract fish, repeat on every moon."', cost:20e15, mult:1.15, effect:'fishPerClick', val:50e12, max:50 },
+      { id:'e9_titan', cat:'catching', name:'Titan Submarines', desc:'"Submarines in methane oceans. Health and safety left the chat."', cost:80e15, mult:1.15, effect:'fishPerClick', val:300e12, max:50 },
+      { id:'e9_scoop', cat:'catching', name:'Gas Giant Scoop', desc:'"Scoop fish from Jupiter\'s atmosphere. Yes, really."', cost:300e15, mult:1.15, effect:'fishPerClick', val:1e15, max:50 },
+      { id:'e9_magnet', cat:'catching', name:'Solar Fish Magnet', desc:'"Turns out fish are slightly magnetic. Who knew?"', cost:1e18, mult:1.15, effect:'fishPerClick', val:5e15, max:50 },
+      { id:'e9_trap1', cat:'trapping', name:'Gravity Wells', desc:'"Trap crabs using the gravity of moons. Physics!"', cost:5e15, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e9_trap2', cat:'trapping', name:'Methane Lobster Bait', desc:'"Smells like methane. The lobsters find it irresistible."', cost:30e15, mult:1.3, effect:'trapRate', val:2000, max:10 },
+      { id:'e9_planetary', cat:'restaurants', name:'Planetary Buffet', desc:'"All-you-can-eat across 8 planets. Pluto was not invited."', cost:50e15, mult:1.15, effect:'mealPrice', val:5e6, max:20 },
+      { id:'e9_solar', cat:'restaurants', name:'Solar Forge Grill', desc:'"Cooked by the power of the actual sun."', cost:300e15, mult:1, effect:'mealPrice', val:70e6, max:1 },
+      { id:'e9_delivery', cat:'cooking', name:'Interplanetary Delivery', desc:'"Hot meals delivered to any planet. 30 light-minutes or it\'s free."', cost:300e15, mult:1, effect:'mealPrice', val:12e6, max:1 },
+      { id:'e9_automoon', cat:'automation', name:'Automated Moon Mining', desc:'"Every moon in the solar system: strip-mined for fish."', cost:100e15, mult:1.15, effect:'fishPerSec', val:100e12, max:20 },
+      { id:'e9_kitchgrid', cat:'automation', name:'Solar System Kitchen Grid', desc:'"A network of kitchens spanning 8 planets."', cost:500e15, mult:1.15, effect:'mealsPerSec', val:50e12, max:20 },
+      { id:'e9_fuel', cat:'special', name:'Improved Fuel Converter', desc:'"10x fuel per conversion."', cost:10e15, mult:1.3, effect:'rocketFuel', val:10, max:100 },
+    ],
+    storyBeats: [
+      { id:'s9_expand', trigger: s => s.era === 9, text:'FishCorp now operates on 47 moons and 4 planets. Your HR department has "scaled."', type:'narrative', once:true },
+      { id:'s9_1t', trigger: s => s.totalFishEver >= 1e12, text:'NEWS: "Solar System Reclassified as \'FishCorp Property.\' Protests Limited to Earth, Where Nobody Has the Energy to Protest Anymore"', type:'headline' },
+      { id:'s9_signal', trigger: s => s.totalMoneyEver >= 5e18, text:'A signal from beyond the solar system. It translates to one word: "Fish?" You respond: "Fish."', type:'narrative' },
+    ],
+    transition: {
+      story: '"The aliens are here. They emerged from hyperspace with one demand: they want to trade fish. Their fish are... beyond comprehension."',
+      btnText: 'First Contact Protocol',
+      cost: { money: 8e18, rocketFuel: 3000 },
+    },
+  },
+  // ERA 10: First Contact
+  {
+    name: 'First Contact',
+    fishTypes: [
+      { name:'Zylothian Mindfish', desc:'Telepathic. Knew you were coming. Didn\'t care.', value:10 },
+      { name:'Quantum Trout', desc:'Exists in all states until observed. Then it\'s delicious.', value:15 },
+      { name:'Void Whale', desc:'10 kilometers long. Swims through empty space. One whale = one million meals.', value:50 },
+      { name:'Chrono Salmon', desc:'Swims upstream through time. You caught it yesterday and tomorrow.', value:20 },
+      { name:'Dark Matter Eel', desc:'You can\'t see it. You can taste it. It tastes like the void.', value:25 },
+    ],
+    trapType: 'Quantum Snares', trapCreature: 'Alien Shellfish & Void Crabs', trapRate: 50000, trapPremium: 5,
+    fishPerMeal: 2,
+    baseMealPrice: 80e6,
+    newResource: 'cosmicEnergy',
+    hasWhales: true,
+    upgrades: [
+      { id:'e10_alien', cat:'catching', name:'Alien Trawl Tech', desc:'"They shared their fishing tech. We shared nothing."', cost:20e18, mult:1.15, effect:'fishPerClick', val:50e18, max:50, reqCE:10 },
+      { id:'e10_void', cat:'catching', name:'Void Nets', desc:'"Cast into the void between stars. Always comes back full."', cost:100e18, mult:1.15, effect:'fishPerClick', val:300e18, max:50, reqCE:50 },
+      { id:'e10_harpoon', cat:'catching', name:'Space Whale Harpoon', desc:'"Moby Dick in space. You\'re Ahab. Ahab wins this time."', cost:500e18, mult:1.15, effect:'fishPerClick', val:2e21, max:50, reqCE:200 },
+      { id:'e10_temporal', cat:'catching', name:'Temporal Fishing Rod', desc:'"Catches fish from the past, present, and future simultaneously."', cost:2e21, mult:1.15, effect:'fishPerClick', val:10e21, max:50, reqCE:500 },
+      { id:'e10_trap1', cat:'trapping', name:'Quantum Snares', desc:'"Traps that exist in all states. The crabs are confused."', cost:5e18, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e10_trap2', cat:'trapping', name:'Void Crab Bait', desc:'"Made from dark matter. The crabs can\'t resist."', cost:50e18, mult:1.3, effect:'trapRate', val:20000, max:10 },
+      { id:'e10_alien_rest', cat:'restaurants', name:'Alien Fusion Restaurant', desc:'"Human-alien cuisine. The critics are baffled."', cost:50e18, mult:1.15, effect:'mealPrice', val:200e6, max:20 },
+      { id:'e10_interdim', cat:'restaurants', name:'Interdimensional Takeout', desc:'"Order fish from any dimension. Delivery in 0 seconds."', cost:300e18, mult:1, effect:'mealPrice', val:4e9, max:1 },
+      { id:'e10_trade', cat:'cooking', name:'Alien Trade Agreement', desc:'"They pay well. Their currency converts favorably."', cost:50e18, mult:1, effect:'mealPrice', val:420e6, max:1, reqCE:25 },
+      { id:'e10_alienfleet', cat:'automation', name:'Alien Fishing Fleet', desc:'"They fish for us now. Cultural exchange, they call it."', cost:80e18, mult:1.15, effect:'fishPerSec', val:50e18, max:20 },
+      { id:'e10_quantcook', cat:'automation', name:'Quantum Auto-Cook', desc:'"Meals prepared in superposition. Schrodinger\'s dinner."', cost:800e18, mult:1.15, effect:'mealsPerSec', val:10e18, max:20 },
+      { id:'e10_ceharvest', cat:'special', name:'Cosmic Energy Harvester', desc:'"Harvests the background energy of the universe. For fish."', cost:3e21, mult:1.5, effect:'cePerSec', val:0.5, max:50 },
+      { id:'e10_ce', cat:'special', name:'Trade Fish for Cosmic Energy', desc:'"The aliens accept fish as payment."', cost:1e18, mult:1.3, effect:'cosmicEnergy', val:1, max:500 },
+    ],
+    storyBeats: [
+      { id:'s10_contact', trigger: s => s.era === 10, text:'The aliens have arrived. They look like fish. This is either a coincidence or the universe has a sense of humor.', type:'narrative', once:true },
+      { id:'s10_100ce', trigger: s => s.resources.cosmicEnergy >= 100, text:'NEWS: "Galactic Council Votes to Rename Universe \'FishCorp Space.\' Motion Passes 7,412 to 3"', type:'headline' },
+      { id:'s10_whale', trigger: s => s.totalFishEver >= 1e21, text:'You caught a space whale. PETA sent a letter. From another dimension. You ate the letter. It was also fish.', type:'narrative' },
+    ],
+    transition: {
+      story: '"FishCorp has consumed 12% of all aquatic life in the known galaxy. We demand you stop. Or... we could discuss a merger. A hostile takeover of the galaxy, if you will."',
+      btnText: 'Galactic Conquest',
+      cost: { money: 40e21, cosmicEnergy: 800 },
+    },
+  },
+  // ERA 11: Galactic Conquest
+  {
+    name: 'Galactic Conquest',
+    fishTypes: [
+      { name:'Galactic Leviathan', desc:'The size of a solar system. Took 300 ships to reel in.', value:30 },
+      { name:'Neutron Star Shrimp', desc:'Impossibly dense. One shrimp weighs as much as a mountain.', value:40 },
+      { name:'Black Hole Anglerfish', desc:'Its lure is a singularity. Ironically, you can\'t escape its flavor.', value:50 },
+      { name:'Dimension Hopper', desc:'Pops in and out of reality. Catch it between dimensions.', value:25 },
+    ],
+    trapType: 'Dimensional Traps', trapCreature: 'Space Crabs (planet-sized) & Galactic Krill', trapRate: 500000, trapPremium: 6,
+    fishPerMeal: 2,
+    baseMealPrice: 5e9,
+    hasWhales: true,
+    hasSchools: true,
+    upgrades: [
+      { id:'e11_galaxy', cat:'catching', name:'Galaxy-Class Trawler', desc:'"Drags a net across the Milky Way. Very literally."', cost:50e21, mult:1.15, effect:'fishPerClick', val:100e21, max:50 },
+      { id:'e11_intergal', cat:'catching', name:'Intergalactic Net', desc:'"Stretches between galaxies. The fish in the void didn\'t see it coming."', cost:200e21, mult:1.15, effect:'fishPerClick', val:1e24, max:50 },
+      { id:'e11_reality', cat:'catching', name:'Reality Hook', desc:'"Hooks into the fabric of spacetime. Pulls fish from adjacent realities."', cost:1e24, mult:1.15, effect:'fishPerClick', val:5e24, max:50 },
+      { id:'e11_bigbang', cat:'catching', name:'Big Bang Reverberator', desc:'"Re-creates the conditions of the Big Bang but only for fish."', cost:5e24, mult:1.15, effect:'fishPerClick', val:25e24, max:50 },
+      { id:'e11_trap1', cat:'trapping', name:'Dimensional Traps', desc:'"Planet-sized crabs need planet-sized traps."', cost:5e21, mult:1.3, effect:'traps', val:1, max:20 },
+      { id:'e11_trap2', cat:'trapping', name:'Galactic Krill Net', desc:'"Krill the size of continents. Still technically krill."', cost:50e21, mult:1.3, effect:'trapRate', val:200000, max:10 },
+      { id:'e11_foodcourt', cat:'restaurants', name:'Galactic Food Court', desc:'"A food court the size of a solar system."', cost:100e21, mult:1.15, effect:'mealPrice', val:20e9, max:20 },
+      { id:'e11_nebula', cat:'restaurants', name:'Nebula Steakhouse', desc:'"Steaks made from nebula fish. Tastes like stardust."', cost:1e24, mult:1, effect:'mealPrice', val:450e9, max:1 },
+      { id:'e11_universal', cat:'cooking', name:'Universal Franchise', desc:'"A FishCorp in every galaxy. Literally."', cost:100e21, mult:1, effect:'mealPrice', val:50e9, max:1 },
+      { id:'e11_probes', cat:'automation', name:'Von Neumann Fish Probes', desc:'"Self-replicating probes that do nothing but fish. Across the galaxy."', cost:150e21, mult:1.15, effect:'fishPerSec', val:100e21, max:20 },
+      { id:'e11_stellar', cat:'automation', name:'Stellar Auto-Kitchen', desc:'"Cooks meals using stellar fusion. Michelin gave it infinity stars."', cost:2e24, mult:1.15, effect:'mealsPerSec', val:50e21, max:20 },
+      { id:'e11_dynamo', cat:'automation', name:'Cosmic Energy Dynamo', desc:'"Converts the death of stars into Cosmic Energy. Stars were overrated."', cost:10e24, mult:1.15, effect:'cePerSec', val:5, max:50 },
+    ],
+    storyBeats: [
+      { id:'s11_conquer', trigger: s => s.era === 11, text:'You have conquered the galaxy. The Milky Way is now the Milky Filet. This is fine.', type:'narrative', once:true },
+      { id:'s11_10kce', trigger: s => s.resources.cosmicEnergy >= 10000, text:'NEWS: "Last Non-Fish-Related Industry in Universe Shuts Down. Former Employees \'Relieved, Hungry\'"', type:'headline' },
+      { id:'s11_warn', trigger: s => s.resources.cosmicEnergy >= 40000, text:'Something is wrong. The fish... they\'re organizing. Across dimensions. Across time. They have a plan.', type:'narrative' },
+      { id:'s11_school', trigger: s => s.totalFishEver >= 1e24, text:'A school of fish the size of the Andromeda galaxy just passed through. Your nets barely held.', type:'headline' },
+      { id:'s11_voidwhale', trigger: s => s.totalFishEver >= 5e24, text:'The void whale sang. Every kitchen in the galaxy heard it. Then every kitchen cooked it.', type:'narrative' },
+    ],
+    transition: {
+      story: '"YOU HAVE TAKEN OUR BROTHERS. OUR SISTERS. OUR CHILDREN. FROM EVERY OCEAN, EVERY MOON, EVERY GALAXY. WE HAVE BEEN PATIENT. WE HAVE BEEN WATCHING. THE FISH REMEMBER. THE FISH FORGIVE NOTHING."',
+      btnText: '...',
+      cost: { cosmicEnergy: 50000 },
+    },
+  },
+  // ERA 12: FISHOCALYPSE
+  {
+    name: 'FISHOCALYPSE',
+    fishTypes: [
+      { name:'The Omega Fish', desc:'It is all fish. All fish are it.', value:100 },
+      { name:'The Fish That Dreams', desc:'When it sleeps, universes are born. When it wakes, they end.', value:75 },
+      { name:'Your Own Reflection, But Fish', desc:'You look into the water. A fish looks back. It has your eyes.', value:50 },
+      { name:'The Last Fish', desc:'This is the one. The final fish. Catch it and it\'s over.', value:200 },
+    ],
+    trapType: 'Reality Nets', trapCreature: 'Cosmic Crawdads (made of dark matter)', trapRate: 5000000, trapPremium: 10,
+    fishPerMeal: 2,
+    baseMealPrice: 500e9,
+    isFinal: true,
+    upgrades: [
+      { id:'e12_multi', cat:'catching', name:'Multiversal Dragnet', desc:'"Fish from every possible universe. Every timeline. Every branch."', cost:50000, mult:1, effect:'fishPerClick', val:500e24, max:1, costType:'ce' },
+      { id:'e12_entropy', cat:'catching', name:'Fish Entropy Reversal', desc:'"Un-eat fish so you can catch them again."', cost:100000, mult:1, effect:'fishPerClick', val:5e27, max:1, costType:'ce' },
+      { id:'e12_become', cat:'catching', name:'Become Fish', desc:'"You are now fish. Fish is now you. Catch yourself."', cost:200000, mult:1, effect:'fishPerClick', val:50e27, max:1, costType:'ce' },
+      { id:'e12_trap1', cat:'trapping', name:'Reality Nets', desc:'"Cosmic crawdads made of dark matter."', cost:50000, mult:1, effect:'traps', val:10, max:5, costType:'ce' },
+      { id:'e12_reality', cat:'cooking', name:'Reality Is Fish', desc:'"Money is fish. Fish is money. Every transaction is fish."', cost:100000, mult:1, effect:'mealPrice', val:500e9, max:1, costType:'ce' },
+      { id:'e12_engine', cat:'automation', name:'The Fish Engine', desc:'"A perpetual motion machine powered by fish. Physicists weep."', cost:75000, mult:1, effect:'fishPerSec', val:10e24, max:1, costType:'ce' },
+      { id:'e12_convert', cat:'automation', name:'Total Conversion', desc:'"Everything is fish now."', cost:150000, mult:1, effect:'fishPerSec', val:100e24, max:1, costType:'ce' },
+    ],
+    storyBeats: [
+      { id:'s12_start', trigger: s => s.era === 12, text:'You hear it now. The song. Every fish you ever caught, singing in unison. It\'s beautiful. It\'s terrifying. It\'s... catchy.', type:'narrative', once:true },
+      { id:'s12_25', trigger: s => s.fishThreat >= 25, text:'The fish are rising. From every ocean. Every lake. Every glass of water.', type:'narrative' },
+      { id:'s12_50', trigger: s => s.fishThreat >= 50, text:'NEWS: "BREAKING: FISH"', type:'headline' },
+      { id:'s12_75', trigger: s => s.fishThreat >= 75, text:'Your name was once feared across galaxies. Now it is whispered by fish as a bedtime story. "Be good, little fish, or the Fisher will come."', type:'narrative' },
+    ],
+    transition: null,
+  },
+];
+
+// ============================================
+// GAME STATE
+// ============================================
+let gameState = createFreshState();
+
+function createFreshState() {
+  return {
+    era: 1,
+    resources: {
+      fish: 0,
+      trapped: 0,
+      meals: 0,
+      money: 0,
+      reputation: 0,
+      contracts: 0,
+      rocketFuel: 0,
+      cosmicEnergy: 0,
+    },
+    rates: {
+      fishPerClick: 1,
+      fishPerSec: 0,
+      mealsPerSec: 0,
+      repPerSec: 0,
+      contractsPerSec: 0,
+      fuelPerSec: 0,
+      cePerSec: 0,
+      traps: 0,
+      trapRate: 0,
+    },
+    mealPrice: 0.50,
+    fishPerMeal: 3,
+    upgrades: {},
+    totalFishEver: 0,
+    totalTrappedEver: 0,
+    totalMealsEver: 0,
+    totalMoneyEver: 0,
+    storyBeatsShown: {},
+    caughtSpecies: {},
+    fishThreat: 0,
+    gameOver: false,
+    whaleActive: false,
+    whaleTimer: 0,
+    schoolActive: false,
+    schoolTimer: 0,
+    startTime: Date.now(),
+    lastSave: Date.now(),
+    saveVersion: 1,
+  };
+}
+
+// ============================================
+// GAME LOGIC
+// ============================================
+let currentTab = 'catching';
+let lastTickTime = Date.now();
+
+function getEra() { return ERAS[gameState.era - 1]; }
+
+function getUpgradeCost(upg) {
+  const owned = gameState.upgrades[upg.id] || 0;
+  return upg.cost * Math.pow(upg.mult || 1, owned);
+}
+
+function canAfford(upg) {
+  const cost = getUpgradeCost(upg);
+  if (upg.costType === 'ce') return gameState.resources.cosmicEnergy >= cost;
+  if (upg.reqRep && gameState.resources.reputation < upg.reqRep) return false;
+  if (upg.reqContracts && gameState.resources.contracts < upg.reqContracts) return false;
+  if (upg.reqFuel && gameState.resources.rocketFuel < upg.reqFuel) return false;
+  if (upg.reqCE && gameState.resources.cosmicEnergy < upg.reqCE) return false;
+  return gameState.resources.money >= cost;
+}
+
+function buyUpgrade(upgId) {
+  const era = getEra();
+  const upg = era.upgrades.find(u => u.id === upgId);
+  if (!upg) return;
+  const owned = gameState.upgrades[upg.id] || 0;
+  if (upg.max && owned >= upg.max) return;
+  if (!canAfford(upg)) return;
+
+  const cost = getUpgradeCost(upg);
+  if (upg.costType === 'ce') {
+    gameState.resources.cosmicEnergy -= cost;
+  } else {
+    gameState.resources.money -= cost;
+  }
+  gameState.upgrades[upg.id] = owned + 1;
+
+  // Apply effect
+  switch (upg.effect) {
+    case 'fishPerClick': gameState.rates.fishPerClick += upg.val; break;
+    case 'fishPerSec': gameState.rates.fishPerSec += upg.val; break;
+    case 'mealsPerSec': gameState.rates.mealsPerSec += upg.val; break;
+    case 'mealPrice': gameState.mealPrice += upg.val; break;
+    case 'fishPerMeal': gameState.fishPerMeal = Math.max(1, gameState.fishPerMeal + upg.val); break;
+    case 'traps': gameState.rates.traps += upg.val; break;
+    case 'trapRate': gameState.rates.trapRate += upg.val; break;
+    case 'repPerSec': gameState.rates.repPerSec += upg.val; break;
+    case 'contractsPerSec': gameState.rates.contractsPerSec += upg.val; break;
+    case 'contracts': gameState.resources.contracts += upg.val; break;
+    case 'rocketFuel': gameState.resources.rocketFuel += upg.val; break;
+    case 'fuelPerSec': gameState.rates.fuelPerSec += upg.val; break;
+    case 'cosmicEnergy': gameState.resources.cosmicEnergy += upg.val; break;
+    case 'cePerSec': gameState.rates.cePerSec += upg.val; break;
+  }
+  renderUpgrades();
+  updateResourceDisplay();
+}
+
+function castLine() {
+  const era = getEra();
+  const fishType = era.fishTypes[Math.floor(Math.random() * era.fishTypes.length)];
+  const amount = gameState.rates.fishPerClick * fishType.value;
+  gameState.resources.fish += amount;
+  gameState.totalFishEver += amount;
+  // Track caught species
+  if (!gameState.caughtSpecies) gameState.caughtSpecies = {};
+  gameState.caughtSpecies[fishType.name] = (gameState.caughtSpecies[fishType.name] || 0) + 1;
+  showFeedback('cast-feedback', '+' + fmt(amount) + ' fish');
+  document.getElementById('last-catch').textContent = 'Caught: ' + fishType.name + ' - "' + fishType.desc + '" (x' + fishType.value + ' value)';
+  renderFishSpecies();
+}
+
+function checkTraps() {
+  if (gameState.resources.trapped <= 0) return;
+  const trapped = gameState.resources.trapped;
+  gameState.resources.trapped = 0;
+  // Cook trapped creatures into premium meals
+  const era = getEra();
+  const premiumMeals = Math.floor(trapped);
+  gameState.resources.meals += premiumMeals;
+  gameState.totalMealsEver += premiumMeals;
+  // Sell them immediately at premium price
+  const income = premiumMeals * gameState.mealPrice * era.trapPremium;
+  gameState.resources.money += income;
+  gameState.totalMoneyEver += income;
+  if (gameState.era >= 4) gameState.resources.reputation += premiumMeals;
+  showFeedback('trap-feedback', '+' + fmt(premiumMeals) + ' premium meals (' + fmtMoney(income) + ')');
+}
+
+function cookMeals() {
+  const fishNeeded = gameState.fishPerMeal;
+  if (gameState.resources.fish < fishNeeded) return;
+  const maxMeals = Math.floor(gameState.resources.fish / fishNeeded);
+  const toCook = Math.min(maxMeals, Math.max(1, Math.floor(maxMeals * 0.5)));
+  const fishUsed = toCook * fishNeeded;
+  gameState.resources.fish -= fishUsed;
+  gameState.resources.meals += toCook;
+  gameState.totalMealsEver += toCook;
+  showFeedback('cook-feedback', '+' + fmt(toCook) + ' meals');
+}
+
+function sellMeals() {
+  if (gameState.resources.meals <= 0) return;
+  const meals = gameState.resources.meals;
+  const income = meals * gameState.mealPrice;
+  gameState.resources.meals = 0;
+  gameState.resources.money += income;
+  gameState.totalMoneyEver += income;
+  if (gameState.era >= 4) gameState.resources.reputation += meals;
+  showFeedback('sell-feedback', '+' + fmtMoney(income));
+}
+
+function harvestWhale() {
+  if (!gameState.whaleActive) return;
+  // Yield a massive fish burst based on current era
+  const multiplier = [0,0,0,0,0,0,0,0,0,0, 1e18, 1e21, 1e24][gameState.era] || 1e18;
+  gameState.resources.fish += multiplier;
+  gameState.totalFishEver += multiplier;
+  gameState.whaleActive = false;
+  document.getElementById('whale-event').style.display = 'none';
+  addStory('You harpooned a space whale! +' + fmt(multiplier) + ' fish!', 'narrative');
+}
+
+function canTransition() {
+  const era = getEra();
+  if (!era.transition) return false;
+  const cost = era.transition.cost;
+  for (const [key, val] of Object.entries(cost)) {
+    if (key === 'money' && gameState.resources.money < val) return false;
+    if (key === 'reputation' && gameState.resources.reputation < val) return false;
+    if (key === 'contracts' && gameState.resources.contracts < val) return false;
+    if (key === 'rocketFuel' && gameState.resources.rocketFuel < val) return false;
+    if (key === 'cosmicEnergy' && gameState.resources.cosmicEnergy < val) return false;
+  }
+  return true;
+}
+
+function advanceEra() {
+  const era = getEra();
+  if (!era.transition || !canTransition()) return;
+
+  // Pay costs
+  const cost = era.transition.cost;
+  if (cost.money) gameState.resources.money -= cost.money;
+  if (cost.reputation) gameState.resources.reputation -= cost.reputation;
+  if (cost.contracts) gameState.resources.contracts -= cost.contracts;
+  if (cost.rocketFuel) gameState.resources.rocketFuel -= cost.rocketFuel;
+  if (cost.cosmicEnergy) gameState.resources.cosmicEnergy -= cost.cosmicEnergy;
+
+  gameState.era++;
+  const newEra = getEra();
+
+  // Set new era base values
+  gameState.mealPrice = newEra.baseMealPrice;
+  gameState.fishPerMeal = newEra.fishPerMeal;
+  gameState.rates.trapRate = newEra.trapRate;
+
+  // Contract income boost at Era 7
+  // (contracts produce more at higher eras handled in tick)
+
+  document.getElementById('era-name').textContent = 'Era ' + gameState.era + ': ' + newEra.name;
+  document.getElementById('era-transition').style.display = 'none';
+  document.getElementById('last-catch').textContent = '';
+  currentTab = 'catching';
+  renderTabs();
+  renderUpgrades();
+  renderFishSpecies();
+  updateResourceDisplay();
+  addStory('=== ERA ' + gameState.era + ': ' + newEra.name.toUpperCase() + ' ===', 'headline');
+}
+
+// ============================================
+// GAME TICK (100ms)
+// ============================================
+function gameTick() {
+  if (gameState.gameOver) return;
+  const now = Date.now();
+  const dt = (now - lastTickTime) / 1000;
+  lastTickTime = now;
+
+  const s = gameState;
+  const era = getEra();
+  const schoolMult = s.schoolActive ? 10 : 1;
+
+  // Passive fish
+  if (s.rates.fishPerSec > 0) {
+    const fish = s.rates.fishPerSec * dt * schoolMult;
+    s.resources.fish += fish;
+    s.totalFishEver += fish;
+  }
+
+  // Traps
+  if (s.rates.traps > 0 && s.rates.trapRate > 0) {
+    s.resources.trapped += s.rates.traps * s.rates.trapRate * dt;
+    s.totalTrappedEver += s.rates.traps * s.rates.trapRate * dt;
+  }
+
+  // Auto-cook
+  if (s.rates.mealsPerSec > 0 && s.resources.fish >= s.fishPerMeal) {
+    const maxMeals = s.rates.mealsPerSec * dt;
+    const fishAvail = Math.floor(s.resources.fish / s.fishPerMeal);
+    const cooked = Math.min(maxMeals, fishAvail);
+    s.resources.fish -= cooked * s.fishPerMeal;
+    s.resources.meals += cooked;
+    s.totalMealsEver += cooked;
+    // Auto-sell
+    const income = cooked * s.mealPrice;
+    s.resources.money += income;
+    s.totalMoneyEver += income;
+    if (s.era >= 4) s.resources.reputation += cooked;
+  }
+
+  // Contracts income
+  if (s.resources.contracts > 0) {
+    const contractRate = s.era >= 7 ? 100000 : 10000;
+    s.resources.money += s.resources.contracts * contractRate * dt;
+    s.totalMoneyEver += s.resources.contracts * contractRate * dt;
+  }
+
+  // Contract generation
+  if (s.rates.contractsPerSec > 0) {
+    s.resources.contracts += s.rates.contractsPerSec * dt;
+  }
+
+  // Rep generation
+  if (s.rates.repPerSec > 0) {
+    s.resources.reputation += s.rates.repPerSec * dt;
+  }
+
+  // Fuel generation
+  if (s.rates.fuelPerSec > 0) {
+    s.resources.rocketFuel += s.rates.fuelPerSec * dt;
+  }
+
+  // CE generation
+  if (s.rates.cePerSec > 0) {
+    s.resources.cosmicEnergy += s.rates.cePerSec * dt;
+  }
+
+  // Fish Threat (Era 12)
+  if (era.isFinal) {
+    s.fishThreat += 0.5 * dt;
+    document.getElementById('threat-meter').style.display = 'block';
+    document.getElementById('threat-fill').style.width = Math.min(100, s.fishThreat) + '%';
+    document.getElementById('threat-pct').textContent = Math.floor(s.fishThreat);
+    if (s.fishThreat >= 100) {
+      endGame();
+      return;
+    }
+  }
+
+  // Space whale events (Era 10+)
+  if (era.hasWhales && !s.whaleActive) {
+    s.whaleTimer += dt;
+    if (s.whaleTimer >= 60) {
+      s.whaleActive = true;
+      s.whaleTimer = 0;
+      document.getElementById('whale-event').style.display = 'block';
+      setTimeout(() => {
+        if (s.whaleActive) {
+          s.whaleActive = false;
+          document.getElementById('whale-event').style.display = 'none';
+        }
+      }, 15000);
+    }
+  }
+
+  // Galactic school events (Era 11)
+  if (era.hasSchools && !s.schoolActive) {
+    s.schoolTimer += dt;
+    if (s.schoolTimer >= 30) {
+      s.schoolActive = true;
+      s.schoolTimer = 0;
+      document.getElementById('school-burst').classList.add('show');
+      setTimeout(() => {
+        s.schoolActive = false;
+        document.getElementById('school-burst').classList.remove('show');
+      }, 5000);
+    }
+  }
+
+  // Check story beats
+  checkStoryBeats();
+
+  // Check era transition
+  updateTransition();
+
+  // Update UI
+  updateResourceDisplay();
+  updateButtonStates();
+}
+
+// ============================================
+// STORY SYSTEM
+// ============================================
+function checkStoryBeats() {
+  const era = getEra();
+  if (!era.storyBeats) return;
+  for (const beat of era.storyBeats) {
+    if (gameState.storyBeatsShown[beat.id]) continue;
+    if (beat.trigger(gameState)) {
+      gameState.storyBeatsShown[beat.id] = true;
+      addStory(beat.text, beat.type);
+    }
+  }
+  // Also check previous era beats that might fire late
+  for (let i = 0; i < gameState.era - 1; i++) {
+    const prevEra = ERAS[i];
+    if (!prevEra.storyBeats) continue;
+    for (const beat of prevEra.storyBeats) {
+      if (gameState.storyBeatsShown[beat.id]) continue;
+      if (beat.trigger(gameState)) {
+        gameState.storyBeatsShown[beat.id] = true;
+        addStory(beat.text, beat.type);
+      }
+    }
+  }
+}
+
+function addStory(text, type) {
+  const ticker = document.getElementById('news-ticker');
+  const div = document.createElement('div');
+  div.className = 'story ' + (type || '');
+  div.textContent = text;
+  ticker.prepend(div);
+  // Keep max 20 stories visible
+  while (ticker.children.length > 20) {
+    ticker.removeChild(ticker.lastChild);
+  }
+}
+
+// ============================================
+// UI RENDERING
+// ============================================
+function updateResourceDisplay() {
+  const s = gameState;
+  const era = getEra();
+  let html = '';
+  html += `<div class="resource"><span class="label">Fish: </span><span class="value">${fmt(s.resources.fish)}</span>`;
+  if (s.rates.fishPerSec > 0) html += ` <span class="rate">(${fmt(s.rates.fishPerSec)}/s)</span>`;
+  html += '</div>';
+  if (s.rates.traps > 0) {
+    html += `<div class="resource"><span class="label">${era.trapCreature}: </span><span class="value">${fmt(s.resources.trapped)}</span>`;
+    html += ` <span class="rate">(${fmt(s.rates.traps * s.rates.trapRate)}/s)</span></div>`;
+  }
+  html += `<div class="resource"><span class="label">Meals: </span><span class="value">${fmt(s.resources.meals)}</span>`;
+  if (s.rates.mealsPerSec > 0) html += ` <span class="rate">(${fmt(s.rates.mealsPerSec)}/s auto)</span>`;
+  html += '</div>';
+  html += `<div class="resource"><span class="label">Money: </span><span class="value">${fmtMoney(s.resources.money)}</span>`;
+  html += ` <span class="rate">(${fmtMoney(s.mealPrice)}/meal)</span></div>`;
+  if (s.era >= 4) html += `<div class="resource"><span class="label">Reputation: </span><span class="value">${fmt(s.resources.reputation)}</span></div>`;
+  if (s.era >= 6) html += `<div class="resource"><span class="label">Contracts: </span><span class="value">${fmt(s.resources.contracts)}</span></div>`;
+  if (s.era >= 8) html += `<div class="resource"><span class="label">Rocket Fuel: </span><span class="value">${fmt(s.resources.rocketFuel)}</span></div>`;
+  if (s.era >= 10) html += `<div class="resource"><span class="label">Cosmic Energy: </span><span class="value">${fmt(s.resources.cosmicEnergy)}</span></div>`;
+  document.getElementById('resources').innerHTML = html;
+}
+
+function renderTabs() {
+  const era = getEra();
+  const cats = new Set();
+  for (const upg of era.upgrades) cats.add(upg.cat);
+  const tabOrder = ['catching','trapping','cooking','restaurants','automation','special'];
+  let html = '';
+  for (const tab of tabOrder) {
+    if (!cats.has(tab)) continue;
+    const active = currentTab === tab ? ' active' : '';
+    html += `<button class="tab-btn${active}" onclick="switchTab('${tab}')">${tab.charAt(0).toUpperCase() + tab.slice(1)}</button>`;
+  }
+  document.getElementById('upgrade-tabs').innerHTML = html;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  renderTabs();
+  renderUpgrades();
+}
+
+function renderUpgrades() {
+  const era = getEra();
+  const filtered = era.upgrades.filter(u => u.cat === currentTab);
+  let html = '';
+  for (const upg of filtered) {
+    const owned = gameState.upgrades[upg.id] || 0;
+    const maxed = upg.max && owned >= upg.max;
+    const cost = getUpgradeCost(upg);
+    const affordable = canAfford(upg);
+    const disabled = maxed || !affordable ? ' disabled' : '';
+    const costStr = upg.costType === 'ce' ? fmt(cost) + ' CE' : fmtMoney(cost);
+    let effectStr = '';
+    switch (upg.effect) {
+      case 'fishPerClick': effectStr = '+' + fmt(upg.val) + ' fish/click'; break;
+      case 'fishPerSec': effectStr = '+' + fmt(upg.val) + ' fish/sec'; break;
+      case 'mealsPerSec': effectStr = '+' + fmt(upg.val) + ' meals/sec (auto)'; break;
+      case 'mealPrice': effectStr = '+' + fmtMoney(upg.val) + '/meal'; break;
+      case 'fishPerMeal': effectStr = upg.val < 0 ? 'Less fish per meal' : 'More fish per meal'; break;
+      case 'traps': effectStr = '+' + upg.val + ' trap(s)'; break;
+      case 'trapRate': effectStr = '+' + fmt(upg.val) + ' creatures/trap/s'; break;
+      case 'repPerSec': effectStr = '+' + fmt(upg.val) + ' rep/sec'; break;
+      case 'contractsPerSec': effectStr = '+' + fmt(upg.val) + ' contracts/sec'; break;
+      case 'contracts': effectStr = '+' + upg.val + ' contract'; break;
+      case 'rocketFuel': effectStr = '+' + upg.val + ' fuel'; break;
+      case 'fuelPerSec': effectStr = '+' + upg.val + ' fuel/sec'; break;
+      case 'cosmicEnergy': effectStr = '+' + upg.val + ' CE'; break;
+      case 'cePerSec': effectStr = '+' + upg.val + ' CE/sec'; break;
+    }
+    html += `<button class="upgrade-btn"${disabled} onclick="buyUpgrade('${upg.id}')">
+      <span class="upgrade-name">${upg.name}</span>
+      <span class="upgrade-cost">${maxed ? 'MAXED' : costStr}</span>
+      <span class="upgrade-desc">${upg.desc}</span>
+      <span class="upgrade-effect">${effectStr}</span>
+      ${owned > 0 ? `<span class="upgrade-owned">Owned: ${owned}${upg.max ? '/' + upg.max : ''}</span>` : ''}
+    </button>`;
+  }
+  if (!html) html = '<div style="color:#666;padding:10px">No upgrades in this category yet.</div>';
+  document.getElementById('upgrade-list').innerHTML = html;
+}
+
+function renderFishSpecies() {
+  const era = getEra();
+  if (!gameState.caughtSpecies) gameState.caughtSpecies = {};
+  let html = '<div class="species-header">Fish Species - ' + era.name + '</div>';
+  for (const fish of era.fishTypes) {
+    const caught = gameState.caughtSpecies[fish.name] || 0;
+    const cls = caught > 0 ? 'species caught' : 'species';
+    html += `<span class="${cls}" title="${fish.desc}">${fish.name}<span class="fish-value">x${fish.value}</span></span>`;
+  }
+  document.getElementById('fish-species').innerHTML = html;
+}
+
+function updateButtonStates() {
+  document.getElementById('btn-cook').disabled = gameState.resources.fish < gameState.fishPerMeal;
+  document.getElementById('btn-sell').disabled = gameState.resources.meals <= 0;
+  document.getElementById('btn-trap').disabled = gameState.resources.trapped < 1;
+}
+
+function updateTransition() {
+  const era = getEra();
+  const transDiv = document.getElementById('era-transition');
+  if (!era.transition) {
+    transDiv.style.display = 'none';
+    return;
+  }
+  if (canTransition()) {
+    transDiv.style.display = 'block';
+    document.getElementById('transition-story').textContent = era.transition.story;
+    let costStr = Object.entries(era.transition.cost).map(([k,v]) => {
+      if (k === 'money') return fmtMoney(v);
+      return fmt(v) + ' ' + k;
+    }).join(' + ');
+    document.getElementById('transition-btn').textContent = era.transition.btnText + ' (' + costStr + ')';
+  } else {
+    transDiv.style.display = 'none';
+  }
+}
+
+function showFeedback(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 800);
+}
+
+// ============================================
+// END GAME
+// ============================================
+function endGame() {
+  gameState.gameOver = true;
+  const screen = document.getElementById('end-screen');
+  screen.classList.add('show');
+
+  document.getElementById('end-poem').innerHTML =
+    'In the beginning, there was water.<br>' +
+    'And in the water, there were fish.<br>' +
+    'And for a time, there was someone who caught the fish.<br>' +
+    'And cooked the fish.<br>' +
+    'And sold the fish.<br>' +
+    'And conquered worlds for the fish.<br>' +
+    'But in the end...<br><br>' +
+    '<strong>It was fish all the way down.</strong>';
+
+  const totalFish = gameState.totalFishEver;
+  let title = 'The Fisher';
+  if (totalFish >= 1e30) title = 'Fish Itself';
+  else if (totalFish >= 1e29) title = 'The Omega Fisher';
+  else if (totalFish >= 1e27) title = 'The Fish King';
+  document.getElementById('end-title').textContent = 'Title Earned: ' + title;
+
+  const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  document.getElementById('end-stats').innerHTML =
+    'Total Fish Caught: ' + fmt(gameState.totalFishEver) + '<br>' +
+    'Total Meals Cooked: ' + fmt(gameState.totalMealsEver) + '<br>' +
+    'Total Money Earned: ' + fmtMoney(gameState.totalMoneyEver) + '<br>' +
+    'Time Played: ' + mins + 'm ' + secs + 's<br>' +
+    'Eras Completed: 12/12';
+}
+
+// ============================================
+// SAVE / LOAD
+// ============================================
+function saveGame() {
+  const saveData = JSON.parse(JSON.stringify(gameState));
+  // Can't serialize functions, strip trigger functions reference
+  saveData.lastSave = Date.now();
+  localStorage.setItem('fishAllTheWayDown', JSON.stringify(saveData));
+}
+
+function loadGame() {
+  const raw = localStorage.getItem('fishAllTheWayDown');
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    if (!data.saveVersion) return false;
+    gameState = data;
+    // Calculate offline progress (cap at 5 minutes)
+    const offlineTime = Math.min(300, (Date.now() - data.lastSave) / 1000);
+    if (offlineTime > 5 && gameState.rates.fishPerSec > 0) {
+      const offlineFish = gameState.rates.fishPerSec * offlineTime;
+      gameState.resources.fish += offlineFish;
+      gameState.totalFishEver += offlineFish;
+      addStory('Welcome back! You caught ' + fmt(offlineFish) + ' fish while away.', 'narrative');
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function resetGame() {
+  localStorage.removeItem('fishAllTheWayDown');
+  gameState = createFreshState();
+  document.getElementById('end-screen').classList.remove('show');
+  document.getElementById('news-ticker').innerHTML = '';
+  document.getElementById('threat-meter').style.display = 'none';
+  document.getElementById('whale-event').style.display = 'none';
+  document.getElementById('school-burst').classList.remove('show');
+  document.getElementById('era-name').textContent = 'Era 1: The Lake';
+  document.getElementById('last-catch').textContent = '';
+  currentTab = 'catching';
+  lastTickTime = Date.now();
+  renderTabs();
+  renderUpgrades();
+  renderFishSpecies();
+  updateResourceDisplay();
+  addStory('You arrive at a quiet mountain lake with a single rod and a dream...', 'narrative');
+}
+
+// ============================================
+// INIT
+// ============================================
+function init() {
+  const loaded = loadGame();
+  if (!loaded) {
+    addStory('You arrive at a quiet mountain lake with a single rod and a dream...', 'narrative');
+  }
+  document.getElementById('era-name').textContent = 'Era ' + gameState.era + ': ' + getEra().name;
+  renderTabs();
+  renderUpgrades();
+  renderFishSpecies();
+  updateResourceDisplay();
+
+  // Game tick - 100ms
+  setInterval(gameTick, 100);
+
+  // Auto-save every 30 seconds
+  setInterval(saveGame, 30000);
+
+  // Re-render upgrades every 2 seconds (for affordability updates)
+  setInterval(renderUpgrades, 2000);
+}
+
+init();
+</script>
+</body>
+</html>
