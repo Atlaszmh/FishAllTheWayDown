@@ -196,6 +196,15 @@ h1 {
   border-color: #4fc3f7;
 }
 .tab-btn:hover { color: #bbb; }
+.tab-btn.new-unlock {
+  animation: tabUnlock 1.2s ease-out;
+  border-color: #ff8a65;
+}
+@keyframes tabUnlock {
+  0% { transform: scale(1.3); background: #ff8a65; color: #000; }
+  50% { border-color: #ff8a65; }
+  100% { transform: scale(1); }
+}
 
 /* Upgrade List */
 #upgrade-list {
@@ -897,6 +906,519 @@ const ERAS = [
 ];
 
 // ============================================
+// TAB UNLOCK GATING
+// ============================================
+const TAB_UNLOCK_CONFIG = {
+  1: {
+    cooking: {
+      resource: 'totalFishEver', threshold: 25, teaserAt: 0.6,
+      teaserBeatId: 'gate_e1_cooking_teaser',
+      teaserText: 'A hiker walks by, glances at your growing pile of raw fish, and visibly gags. "You know you can cook those, right?" he says, already speed-walking away.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e1_cooking_unlock',
+      unlockText: 'NEW: Cooking! Fire plus fish equals money. Humanity figured this out 400,000 years ago, but better late than never.',
+      unlockType: 'headline',
+    },
+    trapping: {
+      resource: 'totalFishEver', threshold: 60, teaserAt: 0.6,
+      teaserBeatId: 'gate_e1_trapping_teaser',
+      teaserText: 'Crawdads keep scuttling past your feet like they own the place. Bold. Disrespectful. If only you had something to put them in besides your pockets.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e1_trapping_unlock',
+      unlockText: 'NEW: Trapping! A bucket with bait inside it. This is the pinnacle of human engineering and the crawdads are too stupid to know it.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 30, teaserAt: 0.6,
+      teaserBeatId: 'gate_e1_automation_teaser',
+      teaserText: 'Your casting arm is starting to make a sound that arms should not make. There has to be a lazier way to extract protein from water.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e1_automation_unlock',
+      unlockText: 'NEW: Automation! Why do something yourself when you can pay technology to do it slightly worse but constantly?',
+      unlockType: 'headline',
+    },
+  },
+  2: {
+    cooking: {
+      resource: 'totalMoneyEver', threshold: 500, teaserAt: 0.6,
+      teaserBeatId: 'gate_e2_cooking_teaser',
+      teaserText: 'A camper asks if your fish meals come with sides. You hand them another, smaller fish. They do not come back.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e2_cooking_unlock',
+      unlockText: 'NEW: Cooking! You now have access to a camp kitchen. "Kitchen" is a strong word for a folding table with a hot plate, but the health inspector hasn\'t found you yet.',
+      unlockType: 'headline',
+    },
+    trapping: {
+      resource: 'totalMoneyEver', threshold: 800, teaserAt: 0.6,
+      teaserBeatId: 'gate_e2_trapping_teaser',
+      teaserText: 'Something keeps rustling in the shallows at night. The crayfish are organizing. You can hear them clicking. Plotting.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e2_trapping_unlock',
+      unlockText: 'NEW: Trapping! Wire traps deployed. The crayfish rebellion has been crushed before it could begin. Democracy was never an option.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 1500, teaserAt: 0.6,
+      teaserBeatId: 'gate_e2_automation_teaser',
+      teaserText: 'You\'ve been holding a fishing rod for so long it\'s fused with your identity. Your friends call you "Rod." This isn\'t sustainable.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e2_automation_unlock',
+      unlockText: 'NEW: Automation! Rod holders and hired help. Dave works for fish. Dave doesn\'t understand currency. Dave is your best employee.',
+      unlockType: 'headline',
+    },
+  },
+  3: {
+    cooking: {
+      resource: 'totalMoneyEver', threshold: 12000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e3_cooking_teaser',
+      teaserText: 'A car slows down near the river. The driver yells "GOT ANY SMOKED SALMON?" You do not. The shame is palpable.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e3_cooking_unlock',
+      unlockText: 'NEW: Cooking! Smoked fish, roadside stands, the whole operation. You\'re not a fisherman anymore. You\'re a "culinary artisan." Your mother is almost proud.',
+      unlockType: 'headline',
+    },
+    trapping: {
+      resource: 'totalMoneyEver', threshold: 18000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e3_trapping_teaser',
+      teaserText: 'Freshwater crabs the size of your fist keep skittering across the riverbed. Big ones. The kind that sell for real money to people who eat things with too many legs.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e3_trapping_unlock',
+      unlockText: 'NEW: Trapping! River cages deployed. The crabs walked right in. Turns out crabs are not strategists.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 40000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e3_automation_teaser',
+      teaserText: 'The river keeps flowing whether you\'re fishing or not. All that water. All those fish. Just swimming around, rent-free, while you sleep. Unacceptable.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e3_automation_unlock',
+      unlockText: 'NEW: Automation! Drift nets, hired hands, and auto-smokers. The river works for you now. Capitalism doesn\'t sleep and neither does your fish processing pipeline.',
+      unlockType: 'headline',
+    },
+  },
+  4: {
+    cooking: {
+      resource: 'totalMoneyEver', threshold: 350000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e4_cooking_teaser',
+      teaserText: 'Someone in a nice blazer asks if you have a "dining experience." You gesture at a folding table covered in fish scales. They leave. You hear them crying in their car.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e4_cooking_unlock',
+      unlockText: 'NEW: Cooking! White tablecloths. Candles. The same fish, but now served on a plate instead of a newspaper. Prices have been adjusted upward by 600%.',
+      unlockType: 'headline',
+    },
+    trapping: {
+      resource: 'totalMoneyEver', threshold: 500000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e4_trapping_teaser',
+      teaserText: 'Lobsters. You can see them on the ocean floor through the clear water. Just sitting there. Being expensive. Taunting you with their deliciousness.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e4_trapping_unlock',
+      unlockText: 'NEW: Trapping! Crab pots and lobster traps deployed. The crustaceans thought the deep water was safe. The crustaceans were incorrect.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 1.2e6, teaserAt: 0.6,
+      teaserBeatId: 'gate_e4_automation_teaser',
+      teaserText: 'You watch your single fishing boat bobbing in the harbor and dream of a fleet. A flotilla. An armada. This is not a healthy thought pattern but here we are.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e4_automation_unlock',
+      unlockText: 'NEW: Automation! Your first boat now operates 24/7. It catches fish while you sleep. It catches fish while you eat. It will catch fish long after you are dead.',
+      unlockType: 'headline',
+    },
+  },
+  5: {
+    restaurants: {
+      resource: 'totalMoneyEver', threshold: 12e6, teaserAt: 0.6,
+      teaserBeatId: 'gate_e5_restaurants_teaser',
+      teaserText: 'Your VP of Strategy slides a napkin sketch across the table. "What if we didn\'t just sell fish? What if we sold the EXPERIENCE of fish?" You promote them immediately.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e5_restaurants_unlock',
+      unlockText: 'NEW: Restaurants! Beach shacks, sushi bars, and family dining. The fish empire requires storefronts. Many, many storefronts.',
+      unlockType: 'headline',
+    },
+    trapping: {
+      resource: 'totalMoneyEver', threshold: 18e6, teaserAt: 0.6,
+      teaserBeatId: 'gate_e5_trapping_teaser',
+      teaserText: 'Industrial crab harvesting is apparently a thing. Your competitors are doing it. Your competitors are also terrified of you. As they should be.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e5_trapping_unlock',
+      unlockText: 'NEW: Trapping! Industrial-scale crustacean harvesting. The prawns never knew freedom. You\'re not sure if that\'s tragic or efficient. Your accountant says efficient.',
+      unlockType: 'headline',
+    },
+    cooking: {
+      resource: 'totalMoneyEver', threshold: 25e6, teaserAt: 0.6,
+      teaserBeatId: 'gate_e5_cooking_teaser',
+      teaserText: 'NEWS: "FishCorp Meals Found In 87% of American Freezers. The Other 13% Are Lying."',
+      teaserType: 'headline',
+      unlockBeatId: 'gate_e5_cooking_unlock',
+      unlockText: 'NEW: Cooking! Chain restaurants and frozen meals. Fish is no longer a food. Fish is a lifestyle. Fish is inescapable.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 40e6, teaserAt: 0.6,
+      teaserBeatId: 'gate_e5_automation_teaser',
+      teaserText: 'Your fleet AI sends you a message at 3 AM: "I have achieved fish-consciousness." You tell it to keep fishing. It does not argue.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e5_automation_unlock',
+      unlockText: 'NEW: Automation! AI fleets, automated processing plants, and franchise networks. Humans are now optional. The fish are not.',
+      unlockType: 'headline',
+    },
+  },
+  6: {
+    restaurants: {
+      resource: 'totalMoneyEver', threshold: 3e9, teaserAt: 0.6,
+      teaserBeatId: 'gate_e6_restaurants_teaser',
+      teaserText: 'A Michelin inspector shows up at your flagship restaurant. You serve them fish. They cry. You\'re not sure if it\'s the quality or the inevitability.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e6_restaurants_unlock',
+      unlockText: 'NEW: Restaurants! Michelin-starred dining, fast food empires, and food trucks that play an ominous fish jingle. The restaurant singularity approaches.',
+      unlockType: 'headline',
+    },
+    trapping: {
+      resource: 'totalMoneyEver', threshold: 2.5e9, teaserAt: 0.6,
+      teaserBeatId: 'gate_e6_trapping_teaser',
+      teaserText: 'Deep-sea cameras reveal mantis shrimp the size of dogs at crushing depth. They punch through steel. You want to eat them.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e6_trapping_unlock',
+      unlockText: 'NEW: Trapping! Deep sea traps rated for 10,000 PSI. The mantis shrimp punch. The traps punch back. The traps win.',
+      unlockType: 'headline',
+    },
+    cooking: {
+      resource: 'totalMoneyEver', threshold: 5e9, teaserAt: 0.6,
+      teaserBeatId: 'gate_e6_cooking_teaser',
+      teaserText: 'Your global distribution team reports that there are still 3 countries without FishCorp products. You stare at a map. This will not stand.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e6_cooking_unlock',
+      unlockText: 'NEW: Cooking! Global distribution and luxury branding. "Poisson d\'Or" — it\'s the same fish in a gold box, and people pay 40x more for it.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 8e9, teaserAt: 0.6,
+      teaserBeatId: 'gate_e6_automation_teaser',
+      teaserText: 'Your fishing AI has started writing poetry. Subject: fish. You don\'t read it. You increase its processing allocation.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e6_automation_unlock',
+      unlockText: 'NEW: Automation! Global AI fishing, worldwide auto-processing, and government lobbying. Elected officials now legally required to eat fish for lunch.',
+      unlockType: 'headline',
+    },
+    special: {
+      resource: 'totalMoneyEver', threshold: 6e9, teaserAt: 0.6,
+      teaserBeatId: 'gate_e6_special_teaser',
+      teaserText: 'A government official slides a folder across a very expensive desk. "We have... a proposition. One that involves fish. And national security."',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e6_special_unlock',
+      unlockText: 'NEW: Special! Government contracts available. Passive income from the world\'s governments. Democracy has been replaced by ichthyocracy.',
+      unlockType: 'headline',
+    },
+  },
+  7: {
+    trapping: {
+      resource: 'totalMoneyEver', threshold: 300e9, teaserAt: 0.6,
+      teaserBeatId: 'gate_e7_trapping_teaser',
+      teaserText: 'Sonar scans of the ocean floor reveal colossal squid and coconut crabs in numbers that shouldn\'t be biologically possible. Nature is screaming. You hear "opportunity."',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e7_trapping_unlock',
+      unlockText: 'NEW: Trapping! Every square meter of ocean floor is now covered in traps. The megalodon didn\'t survive extinction to not be eaten by you.',
+      unlockType: 'headline',
+    },
+    restaurants: {
+      resource: 'totalMoneyEver', threshold: 800e9, teaserAt: 0.6,
+      teaserBeatId: 'gate_e7_restaurants_teaser',
+      teaserText: 'NEWS: "Citizens Report \'Mandatory Fish Smell\' in All Government Buildings. Officials: \'That Is the Smell of Progress\'"',
+      teaserType: 'headline',
+      unlockBeatId: 'gate_e7_restaurants_unlock',
+      unlockText: 'NEW: Restaurants! Mandatory fish cafeterias in every building. Fish currency exchanges. The dollar is dead. Long live the Fish Standard.',
+      unlockType: 'headline',
+    },
+    cooking: {
+      resource: 'totalMoneyEver', threshold: 1.5e12, teaserAt: 0.6,
+      teaserBeatId: 'gate_e7_cooking_teaser',
+      teaserText: 'A constitutional amendment is proposed: "The right of the people to eat non-fish food shall not be infringed." It fails. You had the votes.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e7_cooking_unlock',
+      unlockText: 'NEW: Cooking! The Mandatory Fish Diet Act is now law. Vegetarianism has been reclassified as a thought crime. Fish is all there is.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 3e12, teaserAt: 0.6,
+      teaserBeatId: 'gate_e7_automation_teaser',
+      teaserText: 'Your autonomous fleet of 40,000 ships is the largest navy in human history. NATO sent a strongly worded letter. You sent them fish.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e7_automation_unlock',
+      unlockText: 'NEW: Automation! Autonomous megafleets, global auto-kitchens, and a World Government (Fish Division). You didn\'t conquer the world. You just... acquired it.',
+      unlockType: 'headline',
+    },
+  },
+  8: {
+    trapping: {
+      resource: 'totalMoneyEver', threshold: 30e12, teaserAt: 0.6,
+      teaserBeatId: 'gate_e8_trapping_teaser',
+      teaserText: 'Moon surface scans detect creatures with crystalline shells scuttling between craters. They\'re beautiful. They\'re also definitely edible.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e8_trapping_unlock',
+      unlockText: 'NEW: Trapping! Lunar pit traps online. Moon crabs with crystalline shells — worth a fortune to collectors. Worth slightly more as meals.',
+      unlockType: 'headline',
+    },
+    restaurants: {
+      resource: 'totalMoneyEver', threshold: 80e12, teaserAt: 0.6,
+      teaserBeatId: 'gate_e8_restaurants_teaser',
+      teaserText: 'Lunar colonists are complaining about the food. "We didn\'t move to the Moon to eat reconstituted fish paste!" Actually, you did. That\'s literally why you\'re there.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e8_restaurants_unlock',
+      unlockText: 'NEW: Restaurants! Zero-G diners and lunar fine dining. Food floats to your mouth. The waiting list is 4 years. The menu has one item.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 200e12, teaserAt: 0.6,
+      teaserBeatId: 'gate_e8_automation_teaser',
+      teaserText: 'Your lunar drill operators keep quitting. Something about "existential dread" and "what are we even doing up here." Robots don\'t have existential dread.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e8_automation_unlock',
+      unlockText: 'NEW: Automation! Lunar auto-drills, space kitchen bots, and an Earth-Moon fish pipeline. A literal tube from the Moon to Earth. Fish travel at Mach 3.',
+      unlockType: 'headline',
+    },
+    special: {
+      resource: 'totalMoneyEver', threshold: 600e12, teaserAt: 0.6,
+      teaserBeatId: 'gate_e8_special_teaser',
+      teaserText: 'Your chief engineer sketches something on a napkin. "What if we could convert money... directly into rocket fuel?" You hire them on the spot.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e8_special_unlock',
+      unlockText: 'NEW: Special! Money-to-fuel conversion online. The laws of thermodynamics are more like guidelines when you have this much capital.',
+      unlockType: 'headline',
+    },
+  },
+  9: {
+    trapping: {
+      resource: 'totalFishEver', threshold: 80e12, teaserAt: 0.6,
+      teaserBeatId: 'gate_e9_trapping_teaser',
+      teaserText: 'Probes on Europa detect ice crabs the size of SUVs. On Titan, methane lobsters the length of school buses. You start salivating. In a boardroom. During a meeting.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e9_trapping_unlock',
+      unlockText: 'NEW: Trapping! Gravity well traps deployed across 47 moons. The crabs didn\'t evolve to deal with artificial gravity wells. Evolution has failed them.',
+      unlockType: 'headline',
+    },
+    restaurants: {
+      resource: 'totalMoneyEver', threshold: 50e15, teaserAt: 0.6,
+      teaserBeatId: 'gate_e9_restaurants_teaser',
+      teaserText: 'Colonists on three different moons are independently petitioning for restaurants. "We have fish. We have hunger. We don\'t have ambiance." This will not stand.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e9_restaurants_unlock',
+      unlockText: 'NEW: Restaurants! Planetary buffets and solar forge grills. All-you-can-eat across 8 planets. Pluto was not invited. Pluto knows what it did.',
+      unlockType: 'headline',
+    },
+    cooking: {
+      resource: 'totalMoneyEver', threshold: 250e15, teaserAt: 0.6,
+      teaserBeatId: 'gate_e9_cooking_teaser',
+      teaserText: 'Your delivery drones keep getting lost between planets. "30 light-minutes or it\'s free" was an aspirational slogan. It is now a logistical nightmare.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e9_cooking_unlock',
+      unlockText: 'NEW: Cooking! Interplanetary delivery is now operational. Hot meals to any planet. The "30 light-minutes or it\'s free" guarantee is technically a lie but nobody can prove it.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 100e15, teaserAt: 0.6,
+      teaserBeatId: 'gate_e9_automation_teaser',
+      teaserText: 'You stare at a holographic map of the solar system. Every moon, still full of fish. Every planet, still underutilized. "Automate everything," you whisper to nobody.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e9_automation_unlock',
+      unlockText: 'NEW: Automation! Every moon in the solar system: strip-mined for fish by fully autonomous systems. A kitchen network spanning 8 planets cooks without rest.',
+      unlockType: 'headline',
+    },
+    special: {
+      resource: 'totalMoneyEver', threshold: 15e15, teaserAt: 0.6,
+      teaserBeatId: 'gate_e9_special_teaser',
+      teaserText: 'Your fuel scientists have a breakthrough. "We can make the converters 10x more efficient." You ask if they can make them 100x. They start crying. You take that as a maybe.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e9_special_unlock',
+      unlockText: 'NEW: Special! Improved fuel converters online. The rocket equation doesn\'t apply when you have enough money to ignore it.',
+      unlockType: 'headline',
+    },
+  },
+  10: {
+    trapping: {
+      resource: 'cosmicEnergy', threshold: 8, teaserAt: 0.6,
+      teaserBeatId: 'gate_e10_trapping_teaser',
+      teaserText: 'The aliens mention, casually, that their dimension has crabs made of quantum foam. "Would you like to trap some?" they ask. Your eye twitches.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e10_trapping_unlock',
+      unlockText: 'NEW: Trapping! Quantum snares deployed. The void crabs exist in all states simultaneously. Until you open the trap. Then they\'re just delicious.',
+      unlockType: 'headline',
+    },
+    restaurants: {
+      resource: 'totalMoneyEver', threshold: 40e18, teaserAt: 0.6,
+      teaserBeatId: 'gate_e10_restaurants_teaser',
+      teaserText: 'An alien ambassador takes one bite of your fish and starts vibrating at a frequency that shatters three wine glasses. "This is the greatest thing I have ever consumed," they say. "We need restaurants."',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e10_restaurants_unlock',
+      unlockText: 'NEW: Restaurants! Alien fusion cuisine and interdimensional takeout. Order fish from any dimension. Delivery in 0 seconds. Tips appreciated across all timelines.',
+      unlockType: 'headline',
+    },
+    cooking: {
+      resource: 'cosmicEnergy', threshold: 30, teaserAt: 0.6,
+      teaserBeatId: 'gate_e10_cooking_teaser',
+      teaserText: 'The alien trade delegation eyes your kitchen setup with what you think is pity. "We can show you how to cook with cosmic energy. It\'s... more efficient than fire." Hard to argue.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e10_cooking_unlock',
+      unlockText: 'NEW: Cooking! Alien trade agreements secured. They pay well. Their currency converts favorably. You choose not to ask what they do with the fish.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'totalMoneyEver', threshold: 80e18, teaserAt: 0.6,
+      teaserBeatId: 'gate_e10_automation_teaser',
+      teaserText: 'The aliens offer to lend you their fishing fleet. "Cultural exchange," they say, with an expression that suggests this is definitely not cultural exchange.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e10_automation_unlock',
+      unlockText: 'NEW: Automation! Alien fishing fleets and quantum auto-cookers. Meals prepared in superposition. Schr\u00F6dinger\'s dinner: simultaneously delicious and disappointing until you take a bite.',
+      unlockType: 'headline',
+    },
+    special: {
+      resource: 'cosmicEnergy', threshold: 80, teaserAt: 0.6,
+      teaserBeatId: 'gate_e10_special_teaser',
+      teaserText: 'The background hum of the universe gets louder. Your instruments detect exploitable energy in the cosmic microwave background. "Can we harvest that?" you ask. "For fish?" your scientists clarify. "Obviously for fish."',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e10_special_unlock',
+      unlockText: 'NEW: Special! Cosmic energy harvesting and fish-to-energy conversion. The universe is a battery. You are the one holding the cables.',
+      unlockType: 'headline',
+    },
+  },
+  11: {
+    trapping: {
+      resource: 'cosmicEnergy', threshold: 8000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e11_trapping_teaser',
+      teaserText: 'Planet-sized crabs drift between galaxies. Your tactical AI calculates that a single claw could feed a solar system for a decade. You whisper: "Get me a bigger trap."',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e11_trapping_unlock',
+      unlockText: 'NEW: Trapping! Dimensional traps deployed. Planet-sized crabs require planet-sized solutions. The galactic krill are technically the size of continents. Still krill though.',
+      unlockType: 'headline',
+    },
+    restaurants: {
+      resource: 'totalMoneyEver', threshold: 80e21, teaserAt: 0.6,
+      teaserBeatId: 'gate_e11_restaurants_teaser',
+      teaserText: 'Civilizations across 400 star systems are independently requesting food courts. The galaxy is hungry. The galaxy gets what the galaxy wants.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e11_restaurants_unlock',
+      unlockText: 'NEW: Restaurants! A food court the size of a solar system. Nebula steakhouses. Michelin gave it infinity stars. The concept of "stars" has been ruined forever.',
+      unlockType: 'headline',
+    },
+    cooking: {
+      resource: 'totalMoneyEver', threshold: 80e21, teaserAt: 0.6,
+      teaserBeatId: 'gate_e11_cooking_teaser',
+      teaserText: 'Your franchise map shows coverage in 31% of known galaxies. That means 69% of galaxies have never tasted FishCorp cuisine. This is a market failure of cosmic proportions.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e11_cooking_unlock',
+      unlockText: 'NEW: Cooking! Universal franchising achieved. A FishCorp in every galaxy. Every. Single. One. The universe has been zoned exclusively for fish commerce.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'cosmicEnergy', threshold: 15000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e11_automation_teaser',
+      teaserText: 'Von Neumann probes — self-replicating machines that explore the galaxy. Normally used for science. You\'re going to use them for fish. The scientists weep. The fish also weep.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e11_automation_unlock',
+      unlockText: 'NEW: Automation! Von Neumann fish probes, stellar auto-kitchens, and cosmic energy dynamos. Stars convert to energy. Energy converts to fish. Fish converts to purpose.',
+      unlockType: 'headline',
+    },
+  },
+  12: {
+    trapping: {
+      resource: 'cosmicEnergy', threshold: 50000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e12_trapping_teaser',
+      teaserText: 'Dark matter crawdads phase in and out of reality at the edges of your perception. They are beautiful. They are terrifying. They are also probably delicious.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e12_trapping_unlock',
+      unlockText: 'NEW: Trapping! Reality nets deployed. Cosmic crawdads made of dark matter — the final crustacean frontier. They taste like the space between stars.',
+      unlockType: 'headline',
+    },
+    cooking: {
+      resource: 'cosmicEnergy', threshold: 100000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e12_cooking_teaser',
+      teaserText: 'The boundary between fish and reality is thinning. Your accountant reports that some financial transactions are spontaneously converting into fish. "Is this a problem?" you ask. "Define problem," they respond.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e12_cooking_unlock',
+      unlockText: 'NEW: Cooking! Reality is fish. Fish is reality. Every transaction is fish. The concept of "cooking" no longer applies — you are rearranging the fabric of existence. Bon app\u00E9tit.',
+      unlockType: 'headline',
+    },
+    automation: {
+      resource: 'cosmicEnergy', threshold: 75000, teaserAt: 0.6,
+      teaserBeatId: 'gate_e12_automation_teaser',
+      teaserText: 'Your engineers present blueprints for something they\'re calling "The Fish Engine." It appears to violate several laws of physics. "It runs on fish," they explain, as if that helps.',
+      teaserType: 'narrative',
+      unlockBeatId: 'gate_e12_automation_unlock',
+      unlockText: 'NEW: Automation! The Fish Engine and Total Conversion online. A perpetual motion machine powered by fish. Physicists have stopped weeping. They have accepted fish.',
+      unlockType: 'headline',
+    },
+  },
+};
+
+const ERA_TRANSITION_TEASERS = {
+  1: {
+    resource: 'totalMoneyEver', threshold: 150,
+    beatId: 'gate_trans_e1',
+    text: 'A couple of campers downstream keep looking over at your fish operation. One of them is gesturing excitedly. Looks like they want to chat once you\'ve got a bit more cash on hand.',
+    type: 'narrative',
+  },
+  2: {
+    resource: 'totalMoneyEver', threshold: 3600,
+    beatId: 'gate_trans_e2',
+    text: 'A fisherman on the next lake over mentions a river twenty miles east where the fish are twice the size. Your pupils dilate in a way that concerns everyone within earshot.',
+    type: 'narrative',
+  },
+  3: {
+    resource: 'totalMoneyEver', threshold: 120000,
+    beatId: 'gate_trans_e3',
+    text: 'A man in a suit parks a BMW next to your roadside stand. He eats three fish meals with chopsticks, leaves a business card that says "Coastal Ventures," and drives away without a word.',
+    type: 'narrative',
+  },
+  4: {
+    resource: 'totalMoneyEver', threshold: 4.8e6,
+    beatId: 'gate_trans_e4',
+    text: 'A venture capitalist slides into your restaurant booth and orders everything on the menu. "I want to invest," she says, dabbing tartar sauce off her blazer. "This fish thing could scale."',
+    type: 'narrative',
+  },
+  5: {
+    resource: 'totalMoneyEver', threshold: 900e6,
+    beatId: 'gate_trans_e5',
+    text: 'NEWS: "FishCorp Rumored to Be Exploring Government Partnerships. Analysts: \'It Was Only a Matter of Time Before They Came For Our Institutions\'"',
+    type: 'headline',
+  },
+  6: {
+    resource: 'totalMoneyEver', threshold: 240e9,
+    beatId: 'gate_trans_e6',
+    text: 'You own every ocean. Every fish. Every crustacean. Your conquest of Earth\'s waters is complete. But through a telescope, something flickers on the moon. Something... aquatic.',
+    type: 'narrative',
+  },
+  7: {
+    resource: 'totalMoneyEver', threshold: 24e12,
+    beatId: 'gate_trans_e7',
+    text: 'Scientists are developing some interesting new methods of peering deep into space. Preliminary scans of the Moon\'s subsurface show massive anomalous biosignatures. Something is alive up there. Something that swims.',
+    type: 'narrative',
+  },
+  8: {
+    resource: 'totalMoneyEver', threshold: 4.8e15,
+    beatId: 'gate_trans_e8',
+    text: 'Long-range probes detect aquatic biosignatures on Europa, Titan, and Enceladus. The moons of Jupiter and Saturn are apparently swimming with life. Your board of directors starts hyperventilating.',
+    type: 'narrative',
+  },
+  9: {
+    resource: 'totalMoneyEver', threshold: 4.8e18,
+    beatId: 'gate_trans_e9',
+    text: 'A signal from beyond the solar system, repeating. Your xenolinguists decode it in three minutes. The message: "We also have fish. Do you want to trade?" You have never moved faster in your life.',
+    type: 'narrative',
+  },
+  10: {
+    resource: 'cosmicEnergy', threshold: 480,
+    beatId: 'gate_trans_e10',
+    text: 'The alien council convenes. They stare at your galactic fish output data. One of them whispers: "They consumed 12% of all aquatic life in the galaxy... in one fiscal quarter." Another whispers: "Hostile takeover."',
+    type: 'narrative',
+  },
+  11: {
+    resource: 'cosmicEnergy', threshold: 30000,
+    beatId: 'gate_trans_e11',
+    text: 'Something stirs in the deep void between galaxies. Every fish-detection sensor in the empire triggers simultaneously. The readings are off every chart ever made. The fish... are waking up.',
+    type: 'narrative',
+  },
+};
+
+// ============================================
 // GAME STATE
 // ============================================
 let gameState = createFreshState();
@@ -933,6 +1455,7 @@ function createFreshState() {
     totalMealsEver: 0,
     totalMoneyEver: 0,
     storyBeatsShown: {},
+    unlockedTabs: {},
     caughtSpecies: {},
     fishThreat: 0,
     gameOver: false,
@@ -953,6 +1476,82 @@ let currentTab = 'catching';
 let lastTickTime = Date.now();
 
 function getEra() { return ERAS[gameState.era - 1]; }
+
+// Tab gating helpers
+function getGateResource(key) {
+  switch(key) {
+    case 'totalFishEver': return gameState.totalFishEver;
+    case 'totalMoneyEver': return gameState.totalMoneyEver;
+    case 'totalMealsEver': return gameState.totalMealsEver;
+    case 'totalTrappedEver': return gameState.totalTrappedEver;
+    case 'money': return gameState.resources.money;
+    case 'fish': return gameState.resources.fish;
+    case 'reputation': return gameState.resources.reputation;
+    case 'contracts': return gameState.resources.contracts;
+    case 'rocketFuel': return gameState.resources.rocketFuel;
+    case 'cosmicEnergy': return gameState.resources.cosmicEnergy;
+    default: return 0;
+  }
+}
+
+function isTabUnlocked(tab) {
+  if (tab === 'catching') return true;
+  const config = TAB_UNLOCK_CONFIG[gameState.era];
+  if (!config || !config[tab]) return true;
+  return !!gameState.unlockedTabs[gameState.era + '_' + tab];
+}
+
+function checkTabUnlocks() {
+  const eraNum = gameState.era;
+  const config = TAB_UNLOCK_CONFIG[eraNum];
+  const newlyUnlocked = [];
+
+  if (config) {
+    for (const [tab, gate] of Object.entries(config)) {
+      const tabKey = eraNum + '_' + tab;
+      const currentVal = getGateResource(gate.resource);
+
+      // Fire teaser at teaserAt fraction of threshold
+      if (!gameState.storyBeatsShown[gate.teaserBeatId] && currentVal >= gate.threshold * gate.teaserAt) {
+        gameState.storyBeatsShown[gate.teaserBeatId] = true;
+        addStory(gate.teaserText, gate.teaserType);
+      }
+
+      // Unlock tab at full threshold
+      if (!gameState.unlockedTabs[tabKey] && currentVal >= gate.threshold) {
+        gameState.unlockedTabs[tabKey] = true;
+        newlyUnlocked.push(tab);
+        if (!gameState.storyBeatsShown[gate.unlockBeatId]) {
+          gameState.storyBeatsShown[gate.unlockBeatId] = true;
+          addStory(gate.unlockText, gate.unlockType);
+        }
+      }
+    }
+  }
+
+  // Check era transition teasers
+  const transTeaser = ERA_TRANSITION_TEASERS[eraNum];
+  if (transTeaser && !gameState.storyBeatsShown[transTeaser.beatId]) {
+    if (getGateResource(transTeaser.resource) >= transTeaser.threshold) {
+      gameState.storyBeatsShown[transTeaser.beatId] = true;
+      addStory(transTeaser.text, transTeaser.type);
+    }
+  }
+
+  if (newlyUnlocked.length > 0) {
+    renderTabs();
+    renderUpgrades();
+    // Apply unlock animation to newly unlocked tab buttons
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    for (const btn of tabBtns) {
+      const tabName = btn.textContent.toLowerCase();
+      if (newlyUnlocked.includes(tabName)) {
+        btn.classList.add('new-unlock');
+        setTimeout(() => btn.classList.remove('new-unlock'), 2000);
+      }
+    }
+  }
+}
 
 function getUpgradeCost(upg) {
   const owned = gameState.upgrades[upg.id] || 0;
@@ -1229,6 +1828,9 @@ function gameTick() {
     }
   }
 
+  // Check tab unlock gating
+  checkTabUnlocks();
+
   // Check story beats
   checkStoryBeats();
 
@@ -1310,9 +1912,12 @@ function renderTabs() {
   const cats = new Set();
   for (const upg of era.upgrades) cats.add(upg.cat);
   const tabOrder = ['catching','trapping','cooking','restaurants','automation','special'];
+  // Guard: if current tab is locked, reset to catching
+  if (!isTabUnlocked(currentTab)) currentTab = 'catching';
   let html = '';
   for (const tab of tabOrder) {
     if (!cats.has(tab)) continue;
+    if (!isTabUnlocked(tab)) continue;
     const active = currentTab === tab ? ' active' : '';
     html += `<button class="tab-btn${active}" onclick="switchTab('${tab}')">${tab.charAt(0).toUpperCase() + tab.slice(1)}</button>`;
   }
@@ -1464,6 +2069,28 @@ function loadGame() {
     const data = JSON.parse(raw);
     if (!data.saveVersion) return false;
     gameState = data;
+    // Migration: ensure unlockedTabs exists (old saves)
+    if (!gameState.unlockedTabs) {
+      gameState.unlockedTabs = {};
+      // Backfill all tabs for completed eras
+      for (let e = 1; e < gameState.era; e++) {
+        const config = TAB_UNLOCK_CONFIG[e];
+        if (config) {
+          for (const tab of Object.keys(config)) {
+            gameState.unlockedTabs[e + '_' + tab] = true;
+          }
+        }
+      }
+      // For current era, check thresholds immediately
+      const currentConfig = TAB_UNLOCK_CONFIG[gameState.era];
+      if (currentConfig) {
+        for (const [tab, gate] of Object.entries(currentConfig)) {
+          if (getGateResource(gate.resource) >= gate.threshold) {
+            gameState.unlockedTabs[gameState.era + '_' + tab] = true;
+          }
+        }
+      }
+    }
     // Calculate offline progress (cap at 5 minutes)
     const offlineTime = Math.min(300, (Date.now() - data.lastSave) / 1000);
     if (offlineTime > 5 && gameState.rates.fishPerSec > 0) {
