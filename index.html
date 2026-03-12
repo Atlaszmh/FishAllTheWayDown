@@ -410,15 +410,16 @@ h1::after {
   text-transform: uppercase;
 }
 #news-ticker {
-  height: 110px;
-  overflow-y: auto;
+  height: 150px;
+  overflow-y: scroll;
   padding: 6px 12px;
   font-size: 12px;
   color: var(--muted-text);
 }
-#news-ticker::-webkit-scrollbar { width: 5px; }
-#news-ticker::-webkit-scrollbar-track { background: transparent; }
-#news-ticker::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+#news-ticker::-webkit-scrollbar { width: 8px; }
+#news-ticker::-webkit-scrollbar-track { background: rgba(11, 29, 44, 0.5); border-radius: 4px; }
+#news-ticker::-webkit-scrollbar-thumb { background: var(--faded-ink); border-radius: 4px; }
+#news-ticker::-webkit-scrollbar-thumb:hover { background: var(--muted-text); }
 
 #news-ticker .story {
   margin-bottom: 4px;
@@ -2046,7 +2047,7 @@ function addStory(text, type) {
   div.textContent = text;
   ticker.prepend(div);
   // Keep max 20 stories visible
-  while (ticker.children.length > 20) {
+  while (ticker.children.length > 50) {
     ticker.removeChild(ticker.lastChild);
   }
 }
