@@ -4,82 +4,118 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fish All The Way Down</title>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+:root {
+  --deep-water: #0b1d2c;
+  --lake-surface: #122a3a;
+  --shallows: #173d4f;
+  --driftwood: #c9a84c;
+  --lantern: #e8b84b;
+  --seafoam: #5cbda5;
+  --moss: #7a9e7e;
+  --pale-sand: #ddd0b3;
+  --warm-white: #e8dcc8;
+  --muted-text: #8a9eaa;
+  --faded-ink: #5a7080;
+  --danger-red: #c0503a;
+  --twilight-purple: #7b5ea7;
+  --panel-border: #2a4a5a;
+  --panel-bg: rgba(14, 36, 52, 0.85);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
 body {
-  background: #1a1a2e;
-  color: #e0e0e0;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
+  background: var(--deep-water);
+  background-image:
+    radial-gradient(ellipse at 20% 80%, rgba(22, 78, 99, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(11, 50, 70, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(20, 60, 80, 0.2) 0%, transparent 40%);
+  background-attachment: fixed;
+  color: var(--warm-white);
+  font-family: 'DM Mono', 'Consolas', monospace;
+  font-size: 13px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-#game {
-  max-width: 900px;
-  width: 100%;
-  padding: 10px 20px;
+
+/* Subtle animated water caustics overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    repeating-conic-gradient(from 0deg at 25% 70%, transparent 0deg, rgba(92,189,165,0.015) 2deg, transparent 4deg),
+    repeating-conic-gradient(from 45deg at 75% 30%, transparent 0deg, rgba(201,168,76,0.01) 3deg, transparent 6deg);
+  animation: caustics 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
 }
-h1 {
-  text-align: center;
-  color: #4fc3f7;
-  font-size: 22px;
-  padding: 15px 0 5px;
-  letter-spacing: 2px;
-}
-#era-name {
-  text-align: center;
-  color: #ffab40;
-  font-size: 13px;
-  margin-bottom: 10px;
+@keyframes caustics {
+  from { transform: rotate(0deg) scale(3); }
+  to { transform: rotate(360deg) scale(3); }
 }
 
-/* News Ticker */
-#news-ticker {
-  background: #16213e;
-  border: 1px solid #333;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  min-height: 40px;
-  max-height: 120px;
-  overflow-y: auto;
+#game {
+  max-width: 920px;
+  width: 100%;
+  padding: 12px 20px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Title Area */
+h1 {
+  text-align: center;
+  font-family: 'Bitter', Georgia, serif;
+  color: var(--driftwood);
+  font-size: 26px;
+  font-weight: 700;
+  padding: 18px 0 2px;
+  letter-spacing: 3px;
+  text-shadow: 0 2px 12px rgba(201, 168, 76, 0.2);
+  position: relative;
+}
+h1::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--driftwood), transparent);
+  margin: 8px auto 0;
+}
+
+#era-name {
+  text-align: center;
+  font-family: 'Bitter', Georgia, serif;
+  color: var(--seafoam);
   font-size: 13px;
-  color: #aaa;
-}
-#news-ticker .story {
-  margin-bottom: 4px;
-  animation: fadeIn 0.5s ease-in;
-}
-#news-ticker .story.headline {
-  color: #ff8a65;
-  font-weight: bold;
-}
-#news-ticker .story.narrative {
-  color: #81c784;
-  font-style: italic;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  margin-bottom: 14px;
+  letter-spacing: 1px;
+  opacity: 0.85;
 }
 
 /* Resources Bar */
 #resources {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 20px;
-  background: #16213e;
-  border: 1px solid #333;
-  padding: 10px 15px;
+  gap: 6px 18px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  padding: 10px 14px;
   margin-bottom: 12px;
+  backdrop-filter: blur(4px);
 }
 .resource {
   font-size: 13px;
 }
-.resource .label { color: #888; }
-.resource .value { color: #4fc3f7; font-weight: bold; }
-.resource .rate { color: #666; font-size: 11px; }
+.resource .label { color: var(--muted-text); }
+.resource .value { color: var(--lantern); font-weight: 500; }
+.resource .rate { color: var(--faded-ink); font-size: 11px; }
 
 /* Main Layout */
 #main {
@@ -89,7 +125,7 @@ h1 {
 }
 #actions-col {
   flex: 1;
-  min-width: 280px;
+  min-width: 270px;
 }
 #upgrades-col {
   flex: 1.2;
@@ -100,32 +136,51 @@ h1 {
 .action-btn {
   display: block;
   width: 100%;
-  padding: 12px;
-  margin-bottom: 8px;
-  background: #0f3460;
-  border: 1px solid #4fc3f7;
-  color: #4fc3f7;
-  font-family: inherit;
-  font-size: 15px;
+  padding: 11px 14px;
+  margin-bottom: 7px;
+  background: linear-gradient(135deg, var(--shallows), var(--lake-surface));
+  border: 1px solid var(--panel-border);
+  border-left: 3px solid var(--seafoam);
+  border-radius: 3px;
+  color: var(--pale-sand);
+  font-family: 'Bitter', Georgia, serif;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+.action-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(92,189,165,0.08), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.action-btn:hover:not(:disabled)::before {
+  opacity: 1;
 }
 .action-btn:hover:not(:disabled) {
-  background: #1a5276;
-  transform: scale(1.02);
+  border-color: var(--seafoam);
+  transform: translateX(2px);
+  box-shadow: 0 2px 12px rgba(92,189,165,0.1);
 }
 .action-btn:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: translateX(0) scale(0.98);
 }
 .action-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
-  border-color: #555;
-  color: #555;
+  border-left-color: var(--faded-ink);
 }
 .action-btn .click-feedback {
-  color: #ffab40;
+  color: var(--lantern);
+  font-family: 'DM Mono', monospace;
   font-size: 12px;
+  font-weight: 400;
   margin-left: 8px;
   opacity: 0;
   transition: opacity 0.2s;
@@ -140,22 +195,24 @@ h1 {
   margin-bottom: 8px;
 }
 #era-transition .action-btn {
-  background: #1b5e20;
-  border-color: #66bb6a;
-  color: #66bb6a;
-  font-size: 14px;
+  background: linear-gradient(135deg, #1a3a2a, #0f2e1f);
+  border-color: var(--moss);
+  border-left-color: var(--moss);
+  color: #b8d4b8;
 }
 #era-transition .action-btn:hover:not(:disabled) {
-  background: #2e7d32;
+  border-color: #8fc98f;
+  box-shadow: 0 2px 12px rgba(122,158,126,0.15);
 }
 #era-transition .transition-story {
-  color: #81c784;
+  color: var(--moss);
   font-style: italic;
   font-size: 12px;
   margin-bottom: 6px;
-  padding: 6px;
-  background: rgba(27,94,32,0.2);
-  border-left: 3px solid #66bb6a;
+  padding: 8px 10px;
+  background: rgba(122,158,126,0.08);
+  border-left: 3px solid var(--moss);
+  border-radius: 2px;
 }
 
 /* Space Whale Event */
@@ -164,83 +221,100 @@ h1 {
   margin-bottom: 8px;
 }
 #whale-event .action-btn {
-  background: #4a148c;
-  border-color: #ce93d8;
-  color: #ce93d8;
-  animation: pulse 1s infinite;
+  background: linear-gradient(135deg, #2a1845, #1a1030);
+  border-color: var(--twilight-purple);
+  border-left-color: var(--twilight-purple);
+  color: #c4a8e0;
+  animation: whalePulse 2s ease-in-out infinite;
 }
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(206,147,216,0.3); }
-  50% { box-shadow: 0 0 15px rgba(206,147,216,0.6); }
+@keyframes whalePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(123,94,167,0.2); }
+  50% { box-shadow: 0 0 20px rgba(123,94,167,0.4), inset 0 0 15px rgba(123,94,167,0.05); }
 }
 
 /* Upgrade Tabs */
 #upgrade-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 3px;
   margin-bottom: 8px;
 }
 .tab-btn {
-  padding: 5px 10px;
-  background: #16213e;
-  border: 1px solid #333;
-  color: #888;
-  font-family: inherit;
+  padding: 5px 12px;
+  background: var(--lake-surface);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px 3px 0 0;
+  color: var(--muted-text);
+  font-family: 'DM Mono', monospace;
   font-size: 11px;
   cursor: pointer;
+  transition: all 0.15s;
 }
 .tab-btn.active {
-  background: #0f3460;
-  color: #4fc3f7;
-  border-color: #4fc3f7;
+  background: var(--shallows);
+  color: var(--seafoam);
+  border-color: var(--seafoam);
+  border-bottom-color: var(--shallows);
 }
-.tab-btn:hover { color: #bbb; }
+.tab-btn:hover:not(.active) { color: var(--pale-sand); }
 .tab-btn.new-unlock {
   animation: tabUnlock 1.2s ease-out;
-  border-color: #ff8a65;
+  border-color: var(--lantern);
 }
 @keyframes tabUnlock {
-  0% { transform: scale(1.3); background: #ff8a65; color: #000; }
-  50% { border-color: #ff8a65; }
+  0% { transform: scale(1.3); background: var(--lantern); color: var(--deep-water); }
+  50% { border-color: var(--lantern); }
   100% { transform: scale(1); }
 }
 
 /* Upgrade List */
 #upgrade-list {
-  background: #16213e;
-  border: 1px solid #333;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 0 4px 4px 4px;
   padding: 8px;
   max-height: 400px;
   overflow-y: auto;
+  backdrop-filter: blur(4px);
 }
+#upgrade-list::-webkit-scrollbar { width: 6px; }
+#upgrade-list::-webkit-scrollbar-track { background: var(--deep-water); }
+#upgrade-list::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+#upgrade-list::-webkit-scrollbar-thumb:hover { background: var(--faded-ink); }
+
 .upgrade-btn {
   display: block;
   width: 100%;
   text-align: left;
   padding: 8px 10px;
   margin-bottom: 4px;
-  background: #1a1a2e;
-  border: 1px solid #333;
-  color: #e0e0e0;
-  font-family: inherit;
+  background: rgba(11, 29, 44, 0.6);
+  border: 1px solid rgba(42, 74, 90, 0.5);
+  border-radius: 3px;
+  color: var(--warm-white);
+  font-family: 'DM Mono', monospace;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
 }
 .upgrade-btn:hover:not(:disabled) {
-  border-color: #4fc3f7;
-  background: #0f3460;
+  border-color: var(--seafoam);
+  background: rgba(23, 61, 79, 0.5);
 }
 .upgrade-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
-.upgrade-btn .upgrade-name { color: #4fc3f7; font-weight: bold; }
-.upgrade-btn .upgrade-cost { color: #ffab40; float: right; }
-.upgrade-btn .upgrade-desc { color: #888; font-size: 11px; display: block; margin-top: 2px; }
-.upgrade-btn .upgrade-effect { color: #81c784; font-size: 11px; }
-.upgrade-btn .upgrade-owned { color: #666; font-size: 11px; float: right; }
+.upgrade-btn .upgrade-name {
+  color: var(--seafoam);
+  font-family: 'Bitter', Georgia, serif;
+  font-weight: 700;
+  font-size: 12px;
+}
+.upgrade-btn .upgrade-cost { color: var(--lantern); float: right; font-size: 11px; }
+.upgrade-btn .upgrade-desc { color: var(--muted-text); font-size: 11px; display: block; margin-top: 2px; }
+.upgrade-btn .upgrade-effect { color: var(--moss); font-size: 11px; }
+.upgrade-btn .upgrade-owned { color: var(--faded-ink); font-size: 11px; float: right; }
 
 /* Fish Threat Meter (Era 12) */
 #threat-meter {
@@ -249,89 +323,153 @@ h1 {
 }
 #threat-meter .meter-bar {
   height: 20px;
-  background: #333;
-  border: 1px solid #f44336;
+  background: rgba(42, 74, 90, 0.3);
+  border: 1px solid var(--danger-red);
+  border-radius: 3px;
   position: relative;
+  overflow: hidden;
 }
 #threat-meter .meter-fill {
   height: 100%;
-  background: linear-gradient(90deg, #f44336, #ff1744);
+  background: linear-gradient(90deg, var(--danger-red), #d4432b);
   width: 0%;
   transition: width 0.1s;
 }
 #threat-meter .meter-label {
   text-align: center;
-  color: #f44336;
+  color: var(--danger-red);
   font-size: 12px;
   margin-top: 4px;
+  font-weight: 500;
 }
 
 /* Fish Species Panel */
 #fish-species {
-  background: #16213e;
-  border: 1px solid #333;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
   padding: 8px 12px;
   margin-bottom: 12px;
   font-size: 12px;
+  backdrop-filter: blur(4px);
 }
 #fish-species .species-header {
-  color: #4fc3f7;
-  font-weight: bold;
+  color: var(--driftwood);
+  font-family: 'Bitter', Georgia, serif;
+  font-weight: 700;
   margin-bottom: 6px;
   font-size: 13px;
 }
 #fish-species .species {
   display: inline-block;
-  margin: 2px 6px 2px 0;
+  margin: 2px 5px 2px 0;
   padding: 2px 8px;
-  background: #1a1a2e;
-  border: 1px solid #333;
+  background: rgba(11, 29, 44, 0.5);
+  border: 1px solid rgba(42, 74, 90, 0.4);
   border-radius: 3px;
-  color: #aaa;
+  color: var(--faded-ink);
   transition: all 0.3s;
 }
 #fish-species .species.caught {
-  border-color: #4fc3f7;
-  color: #e0e0e0;
+  border-color: var(--seafoam);
+  color: var(--warm-white);
+  background: rgba(92,189,165,0.08);
 }
 #fish-species .species .fish-value {
-  color: #ffab40;
+  color: var(--lantern);
   font-size: 10px;
   margin-left: 4px;
 }
 #last-catch {
   text-align: center;
-  color: #81c784;
+  color: var(--moss);
   font-size: 12px;
+  font-style: italic;
   min-height: 18px;
   margin-bottom: 4px;
   transition: opacity 0.3s;
+}
+
+/* Captain's Log (News Ticker) — fixed height, never pushes layout */
+#news-ticker-wrapper {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+}
+.log-header {
+  font-family: 'Bitter', Georgia, serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--driftwood);
+  padding: 6px 12px 4px;
+  border-bottom: 1px solid rgba(42, 74, 90, 0.4);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+#news-ticker {
+  height: 110px;
+  overflow-y: auto;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--muted-text);
+}
+#news-ticker::-webkit-scrollbar { width: 5px; }
+#news-ticker::-webkit-scrollbar-track { background: transparent; }
+#news-ticker::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+
+#news-ticker .story {
+  margin-bottom: 4px;
+  padding-left: 10px;
+  border-left: 2px solid rgba(42, 74, 90, 0.3);
+  animation: logEntry 0.4s ease-out;
+}
+#news-ticker .story.headline {
+  color: var(--lantern);
+  font-weight: 500;
+  border-left-color: var(--lantern);
+}
+#news-ticker .story.narrative {
+  color: var(--seafoam);
+  font-style: italic;
+  border-left-color: var(--seafoam);
+}
+@keyframes logEntry {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* Save Controls */
 #save-controls {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 4px;
   justify-content: center;
 }
 #save-controls button {
-  padding: 4px 12px;
-  background: #16213e;
-  border: 1px solid #555;
-  color: #888;
-  font-family: inherit;
+  padding: 5px 16px;
+  background: var(--lake-surface);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  color: var(--muted-text);
+  font-family: 'DM Mono', monospace;
   font-size: 11px;
   cursor: pointer;
+  transition: all 0.15s;
 }
-#save-controls button:hover { color: #bbb; border-color: #888; }
+#save-controls button:hover {
+  color: var(--pale-sand);
+  border-color: var(--faded-ink);
+}
 
 /* End Screen */
 #end-screen {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.95);
+  background: rgba(5, 12, 20, 0.97);
   z-index: 1000;
   flex-direction: column;
   align-items: center;
@@ -340,37 +478,58 @@ h1 {
   padding: 20px;
 }
 #end-screen.show { display: flex; }
-#end-screen h2 { color: #4fc3f7; font-size: 28px; margin-bottom: 20px; }
-#end-screen .poem { color: #81c784; font-style: italic; font-size: 16px; line-height: 2; margin-bottom: 30px; }
-#end-screen .stats { color: #aaa; font-size: 14px; margin-bottom: 20px; }
-#end-screen .title { color: #ffab40; font-size: 20px; margin-bottom: 20px; }
+#end-screen h2 {
+  font-family: 'Bitter', Georgia, serif;
+  color: var(--driftwood);
+  font-size: 30px;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 20px rgba(201,168,76,0.3);
+}
+#end-screen .poem {
+  color: var(--seafoam);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 2;
+  margin-bottom: 30px;
+}
+#end-screen .stats { color: var(--muted-text); font-size: 13px; margin-bottom: 20px; }
+#end-screen .title { color: var(--lantern); font-size: 20px; margin-bottom: 20px; font-family: 'Bitter', serif; }
 #end-screen button {
   padding: 12px 30px;
-  background: #0f3460;
-  border: 1px solid #4fc3f7;
-  color: #4fc3f7;
-  font-family: inherit;
+  background: var(--shallows);
+  border: 1px solid var(--seafoam);
+  border-radius: 4px;
+  color: var(--seafoam);
+  font-family: 'Bitter', Georgia, serif;
   font-size: 16px;
   cursor: pointer;
+  transition: all 0.2s;
+}
+#end-screen button:hover {
+  background: var(--lake-surface);
+  box-shadow: 0 2px 20px rgba(92,189,165,0.2);
 }
 
 /* Galactic school burst indicator */
 #school-burst {
   display: none;
-  background: rgba(206,147,216,0.15);
-  border: 1px solid #ce93d8;
-  color: #ce93d8;
+  background: rgba(123,94,167,0.12);
+  border: 1px solid var(--twilight-purple);
+  border-radius: 4px;
+  color: #c4a8e0;
   text-align: center;
-  padding: 4px;
+  padding: 6px;
   margin-bottom: 8px;
   font-size: 12px;
-  animation: pulse 0.5s infinite;
+  font-weight: 500;
+  animation: whalePulse 0.5s infinite;
 }
 #school-burst.show { display: block; }
 
 @media (max-width: 700px) {
   #main { flex-direction: column; }
   #actions-col, #upgrades-col { min-width: auto; }
+  h1 { font-size: 20px; }
 }
 </style>
 </head>
@@ -378,8 +537,6 @@ h1 {
 <div id="game">
   <h1>FISH ALL THE WAY DOWN</h1>
   <div id="era-name">Era 1: The Lake</div>
-
-  <div id="news-ticker"></div>
 
   <div id="threat-meter">
     <div class="meter-bar"><div class="meter-fill" id="threat-fill"></div></div>
@@ -411,6 +568,11 @@ h1 {
       <div id="upgrade-tabs"></div>
       <div id="upgrade-list"></div>
     </div>
+  </div>
+
+  <div id="news-ticker-wrapper">
+    <div class="log-header">Captain's Log</div>
+    <div id="news-ticker"></div>
   </div>
 
   <div id="save-controls">
@@ -477,14 +639,17 @@ const ERAS = [
     ],
     storyBeats: [
       { id:'s1_first', trigger: s => s.totalFishEver >= 1, text:'You caught a fish! It flopped around for a bit. You feel... something. Is this what purpose feels like?', type:'narrative' },
+      { id:'s1_10', trigger: s => s.totalFishEver >= 10, text:'Ten fish. You line them up on the bank and admire your work. A crow lands nearby and judges you silently.', type:'narrative' },
       { id:'s1_50', trigger: s => s.totalFishEver >= 50, text:'NEWS: "Local Man Catches 50 Fish, Family \'Concerned But Supportive\'"', type:'headline' },
+      { id:'s1_150', trigger: s => s.totalFishEver >= 150, text:'The pile of fish is now visible from the hiking trail. People are taking photos. You wave.', type:'narrative' },
       { id:'s1_10bucks', trigger: s => s.totalMoneyEver >= 10, text:'You made ten dollars selling fish meals to hikers. The hikers did not ask about your food safety certification.', type:'narrative' },
+      { id:'s1_50bucks', trigger: s => s.totalMoneyEver >= 50, text:'Fifty dollars in crumpled bills stuffed in a tackle box. You are now a small business owner. Technically.', type:'narrative' },
       { id:'s1_crawdad', trigger: s => s.totalTrappedEver >= 5, text:'The crawdads are practically crawling into the bucket. Maybe they want to be eaten? Don\'t think about it.', type:'narrative' },
     ],
     transition: {
       story: '"Hey, nice fish! My buddy and I are camping downstream. You should set up a proper campsite -- I bet you could sell meals to the whole campground. Here, I brought extra rods."',
       btnText: 'Set Up Camp',
-      cost: { money: 250 },
+      cost: { money: 600 },
     },
   },
   // ERA 2: The Campsite
@@ -519,7 +684,7 @@ const ERAS = [
     transition: {
       story: '"The campground lake is fished out. But there\'s a river twenty miles east -- the locals say the fish there are twice the size. You\'d need a boat, though..."',
       btnText: 'Buy a Boat',
-      cost: { money: 6000 },
+      cost: { money: 12000 },
     },
   },
   // ERA 3: The River
@@ -911,7 +1076,7 @@ const ERAS = [
 const TAB_UNLOCK_CONFIG = {
   1: {
     cooking: {
-      resource: 'totalFishEver', threshold: 25, teaserAt: 0.6,
+      resource: 'totalFishEver', threshold: 80, teaserAt: 0.6,
       teaserBeatId: 'gate_e1_cooking_teaser',
       teaserText: 'A hiker walks by, glances at your growing pile of raw fish, and visibly gags. "You know you can cook those, right?" he says, already speed-walking away.',
       teaserType: 'narrative',
@@ -920,7 +1085,7 @@ const TAB_UNLOCK_CONFIG = {
       unlockType: 'headline',
     },
     trapping: {
-      resource: 'totalFishEver', threshold: 60, teaserAt: 0.6,
+      resource: 'totalFishEver', threshold: 200, teaserAt: 0.6,
       teaserBeatId: 'gate_e1_trapping_teaser',
       teaserText: 'Crawdads keep scuttling past your feet like they own the place. Bold. Disrespectful. If only you had something to put them in besides your pockets.',
       teaserType: 'narrative',
@@ -929,7 +1094,7 @@ const TAB_UNLOCK_CONFIG = {
       unlockType: 'headline',
     },
     automation: {
-      resource: 'totalMoneyEver', threshold: 30, teaserAt: 0.6,
+      resource: 'totalMoneyEver', threshold: 100, teaserAt: 0.6,
       teaserBeatId: 'gate_e1_automation_teaser',
       teaserText: 'Your casting arm is starting to make a sound that arms should not make. There has to be a lazier way to extract protein from water.',
       teaserType: 'narrative',
@@ -940,7 +1105,7 @@ const TAB_UNLOCK_CONFIG = {
   },
   2: {
     cooking: {
-      resource: 'totalMoneyEver', threshold: 500, teaserAt: 0.6,
+      resource: 'totalMoneyEver', threshold: 1500, teaserAt: 0.6,
       teaserBeatId: 'gate_e2_cooking_teaser',
       teaserText: 'A camper asks if your fish meals come with sides. You hand them another, smaller fish. They do not come back.',
       teaserType: 'narrative',
@@ -949,7 +1114,7 @@ const TAB_UNLOCK_CONFIG = {
       unlockType: 'headline',
     },
     trapping: {
-      resource: 'totalMoneyEver', threshold: 800, teaserAt: 0.6,
+      resource: 'totalMoneyEver', threshold: 2500, teaserAt: 0.6,
       teaserBeatId: 'gate_e2_trapping_teaser',
       teaserText: 'Something keeps rustling in the shallows at night. The crayfish are organizing. You can hear them clicking. Plotting.',
       teaserType: 'narrative',
@@ -958,7 +1123,7 @@ const TAB_UNLOCK_CONFIG = {
       unlockType: 'headline',
     },
     automation: {
-      resource: 'totalMoneyEver', threshold: 1500, teaserAt: 0.6,
+      resource: 'totalMoneyEver', threshold: 4500, teaserAt: 0.6,
       teaserBeatId: 'gate_e2_automation_teaser',
       teaserText: 'You\'ve been holding a fishing rod for so long it\'s fused with your identity. Your friends call you "Rod." This isn\'t sustainable.',
       teaserType: 'narrative',
@@ -1351,13 +1516,13 @@ const TAB_UNLOCK_CONFIG = {
 
 const ERA_TRANSITION_TEASERS = {
   1: {
-    resource: 'totalMoneyEver', threshold: 150,
+    resource: 'totalMoneyEver', threshold: 400,
     beatId: 'gate_trans_e1',
     text: 'A couple of campers downstream keep looking over at your fish operation. One of them is gesturing excitedly. Looks like they want to chat once you\'ve got a bit more cash on hand.',
     type: 'narrative',
   },
   2: {
-    resource: 'totalMoneyEver', threshold: 3600,
+    resource: 'totalMoneyEver', threshold: 8000,
     beatId: 'gate_trans_e2',
     text: 'A fisherman on the next lake over mentions a river twenty miles east where the fish are twice the size. Your pupils dilate in a way that concerns everyone within earshot.',
     type: 'narrative',
