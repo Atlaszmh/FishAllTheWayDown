@@ -2104,7 +2104,11 @@ function loadGame() {
       const offlineFish = Math.floor(gameState.rates.fishPerSec * offlineTime);
       gameState.resources.fish += offlineFish;
       gameState.totalFishEver += offlineFish;
-      addStory('Welcome back! You caught ' + fmt(offlineFish) + ' fish while away.', 'narrative');
+      if (offlineFish > 0) {
+        addStory('Welcome back! You caught ' + fmt(offlineFish) + ' fish while away.', 'narrative');
+      } else {
+        addStory('Fish popped off!', 'narrative');
+      }
     }
     return true;
   } catch (e) {
